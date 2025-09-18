@@ -63,8 +63,8 @@ RUN composer install --no-dev --optimize-autoloader --no-interaction --no-script
 # Copy package files
 COPY package.json package-lock.json ./
 
-# Install Node dependencies
-RUN npm ci --only=production
+# Install Node dependencies (including dev dependencies for build)
+RUN npm ci
 
 # Copy application code
 COPY . .
@@ -86,7 +86,7 @@ RUN php artisan package:discover --ansi
 # Build frontend assets
 RUN npm run build
 
-# Remove development dependencies
+# Remove development dependencies after build
 RUN npm prune --production
 
 # Set proper permissions
