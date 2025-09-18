@@ -54,11 +54,11 @@ RUN apk add --no-cache \
 # Set working directory
 WORKDIR /var/www/html
 
-# Copy composer files
+# Copy composer files first for better caching
 COPY composer.json composer.lock ./
 
-# Install PHP dependencies
-RUN composer install --no-dev --optimize-autoloader --no-interaction
+# Install PHP dependencies without scripts
+RUN composer install --no-dev --optimize-autoloader --no-interaction --no-scripts
 
 # Copy package files
 COPY package.json package-lock.json ./
@@ -68,6 +68,20 @@ RUN npm ci --only=production
 
 # Copy application code
 COPY . .
+
+# Create minimal .env file for build
+RUN echo "APP_NAME=\"One Stream CRUD API\"" > .env \
+    && echo "APP_ENV=local" >> .env \
+    && echo "APP_KEY=" >> .env \
+    && echo "APP_DEBUG=true" >> .env \
+    && echo "DB_CONNECTION=sqlite" >> .env \
+    && echo "DB_DATABASE=database/database.sqlite" >> .env
+
+# Generate application key if not exists
+RUN php artisan key:generate --ansi || true
+
+# Run Laravel post-install scripts
+RUN php artisan package:discover --ansi
 
 # Build frontend assets
 RUN npm run build

@@ -10,6 +10,9 @@ npm ci --only=production
 echo "Building frontend assets..."
 npm run build
 
+echo "Generating application key..."
+php artisan key:generate --ansi || true
+
 echo "Caching config..."
 php artisan config:cache
 
