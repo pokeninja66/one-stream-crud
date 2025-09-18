@@ -1,0 +1,34 @@
+services:
+  - type: web
+    name: one-stream-crud-api
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    plan: free
+    envVars:
+      - key: APP_ENV
+        value: production
+      - key: APP_DEBUG
+        value: false
+      - key: DB_CONNECTION
+        value: pgsql
+      - key: CACHE_STORE
+        value: database
+      - key: SESSION_DRIVER
+        value: database
+      - key: QUEUE_CONNECTION
+        value: database
+      - key: LOG_CHANNEL
+        value: stack
+      - key: LOG_LEVEL
+        value: error
+    buildCommand: |
+      echo "Building Docker image..."
+    startCommand: /start.sh
+    healthCheckPath: /
+    autoDeploy: true
+
+databases:
+  - name: one-stream-crud-db
+    plan: free
+    databaseName: one_stream_crud
+    user: one_stream_crud_user
