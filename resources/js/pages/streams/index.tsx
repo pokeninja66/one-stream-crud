@@ -10,8 +10,10 @@ import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { JsonDataModal } from '@/components/ui/json-data-modal';
 import { type BreadcrumbItem, type Stream, type StreamType, type StreamFilters, type StreamsResponse } from '@/types';
-import { Plus, Search, Filter, SortAsc, SortDesc, Edit, Trash2, Eye, Calendar, DollarSign, Tag } from 'lucide-react';
+import { Plus, Search, Filter, SortAsc, SortDesc, Edit, Trash2, Eye, Calendar, DollarSign, Tag, Code } from 'lucide-react';
+import { toast } from 'sonner';
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
@@ -42,6 +44,8 @@ export default function StreamsIndex() {
         total: 0,
         per_page: 15,
     });
+    const [isJsonModalOpen, setIsJsonModalOpen] = useState(false);
+    const [selectedStreamData, setSelectedStreamData] = useState<Stream | null>(null);
 
     // Fetch streams
     const fetchStreams = async (page = 1) => {
@@ -69,8 +73,11 @@ export default function StreamsIndex() {
                 total: data.meta.total,
                 per_page: data.meta.per_page,
             });
+            toast.success(`Loaded ${data.data.length} streams`);
         } catch (err) {
-            setError(err instanceof Error ? err.message : 'An error occurred');
+            const errorMessage = err instanceof Error ? err.message : 'An error occurred';
+            setError(errorMessage);
+            toast.error(`Failed to load streams: ${errorMessage}`);
         } finally {
             setLoading(false);
         }
@@ -323,8 +330,8 @@ export default function StreamsIndex() {
                                                 size="sm" 
                                                 className="flex-1"
                                                 onClick={() => {
-                                                    // For now, just show an alert - you can implement a view modal later
-                                                    alert(`Viewing stream: ${stream.title}`);
+                                                    setSelectedStreamData(stream);
+                                                    setIsJsonModalOpen(true);
                                                 }}
                                             >
                                                 <Eye className="mr-1 h-3 w-3" />
@@ -339,6 +346,7 @@ export default function StreamsIndex() {
                                                 <Edit className="mr-1 h-3 w-3" />
                                                 Edit
                                             </Button>
+
                                             <Dialog>
                                                 <DialogTrigger asChild>
                                                     <Button 
@@ -367,11 +375,15 @@ export default function StreamsIndex() {
                                                                         method: 'DELETE',
                                                                     });
                                                                     if (response.ok) {
+                                                                        toast.success(`Stream "${stream.title}" deleted successfully`);
                                                                         // Refresh the streams list
                                                                         fetchStreams(pagination.current_page);
+                                                                    } else {
+                                                                        toast.error('Failed to delete stream');
                                                                     }
                                                                 } catch (err) {
                                                                     console.error('Failed to delete stream:', err);
+                                                                    toast.error('Failed to delete stream');
                                                                 }
                                                             }}
                                                         >
@@ -412,6 +424,15 @@ export default function StreamsIndex() {
                         </div>
                     )}
                 </div>
+
+                {/* JSON Data Modal */}
+                <JsonDataModal
+                    open={isJsonModalOpen}
+                    onOpenChange={setIsJsonModalOpen}
+                    data={selectedStreamData}
+                    title="Stream Raw Data"
+                    description="View the raw JSON data for this stream. You can copy this data to use elsewhere."
+                />
             </div>
         </AppLayout>
     );

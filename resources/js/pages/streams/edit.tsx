@@ -10,8 +10,10 @@ import { Textarea } from '@/components/ui/textarea';
 import { DateTimePicker } from '@/components/ui/date-time-picker';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Skeleton } from '@/components/ui/skeleton';
+import { JsonDataModal } from '@/components/ui/json-data-modal';
 import { type BreadcrumbItem, type StreamType, type Stream } from '@/types';
-import { ArrowLeft, Save, LoaderCircle } from 'lucide-react';
+import { ArrowLeft, Save, LoaderCircle, Code } from 'lucide-react';
+import { toast } from 'sonner';
 
 interface StreamEditProps {
     streamId: string;
@@ -30,6 +32,7 @@ export default function StreamEdit({ streamId }: StreamEditProps) {
     const [loading, setLoading] = useState(false);
     const [loadingStream, setLoadingStream] = useState(true);
     const [errors, setErrors] = useState<Record<string, string>>({});
+    const [isJsonModalOpen, setIsJsonModalOpen] = useState(false);
 
     const breadcrumbs: BreadcrumbItem[] = [
         { title: 'Dashboard', href: '/dashboard' },
@@ -57,7 +60,9 @@ export default function StreamEdit({ streamId }: StreamEditProps) {
                     date_expiration: data.date_expiration.slice(0, 16),
                 });
             } catch (err) {
-                setErrors({ general: 'Failed to load stream data' });
+                const errorMessage = 'Failed to load stream data';
+                setErrors({ general: errorMessage });
+                toast.error(errorMessage);
             } finally {
                 setLoadingStream(false);
             }
@@ -148,16 +153,22 @@ export default function StreamEdit({ streamId }: StreamEditProps) {
                 const errorData = await response.json();
                 if (errorData.errors) {
                     setErrors(errorData.errors);
+                    toast.error('Validation errors occurred');
                 } else {
-                    setErrors({ general: errorData.message || 'An error occurred' });
+                    const errorMessage = errorData.message || 'An error occurred';
+                    setErrors({ general: errorMessage });
+                    toast.error(errorMessage);
                 }
                 return;
             }
 
             // Redirect to streams list on success
+            toast.success('Stream updated successfully!');
             router.visit('/streams');
         } catch (err) {
-            setErrors({ general: 'An error occurred while updating the stream' });
+            const errorMessage = 'An error occurred while updating the stream';
+            setErrors({ general: errorMessage });
+            toast.error(errorMessage);
         } finally {
             setLoading(false);
         }
@@ -330,6 +341,15 @@ export default function StreamEdit({ streamId }: StreamEditProps) {
                                 <Button
                                     type="button"
                                     variant="outline"
+                                    onClick={() => setIsJsonModalOpen(true)}
+                                    disabled={loading}
+                                >
+                                    <Code className="mr-2 h-4 w-4" />
+                                    View JSON
+                                </Button>
+                                <Button
+                                    type="button"
+                                    variant="outline"
                                     onClick={() => router.visit('/streams')}
                                     disabled={loading}
                                 >
@@ -339,6 +359,15 @@ export default function StreamEdit({ streamId }: StreamEditProps) {
                         </form>
                     </CardContent>
                 </Card>
+
+                {/* JSON Data Modal */}
+                <JsonDataModal
+                    open={isJsonModalOpen}
+                    onOpenChange={setIsJsonModalOpen}
+                    data={stream}
+                    title="Stream Raw Data"
+                    description="View the raw JSON data for this stream. You can copy this data to use elsewhere."
+                />
             </div>
         </AppLayout>
     );

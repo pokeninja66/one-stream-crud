@@ -11,6 +11,7 @@ import { type BreadcrumbItem, type StreamType } from '@/types';
 import { ArrowLeft, Save, LoaderCircle } from 'lucide-react';
 import { Textarea } from '@/components/ui/textarea';
 import { DateTimePicker } from '@/components/ui/date-time-picker';
+import { toast } from 'sonner';
 
 interface StreamFormProps {
     stream?: {
@@ -127,16 +128,22 @@ export default function StreamForm({ stream }: StreamFormProps) {
                 const errorData = await response.json();
                 if (errorData.errors) {
                     setErrors(errorData.errors);
+                    toast.error('Validation errors occurred');
                 } else {
-                    setErrors({ general: errorData.message || 'An error occurred' });
+                    const errorMessage = errorData.message || 'An error occurred';
+                    setErrors({ general: errorMessage });
+                    toast.error(errorMessage);
                 }
                 return;
             }
 
             // Redirect to streams list on success
+            toast.success(stream ? 'Stream updated successfully!' : 'Stream created successfully!');
             router.visit('/streams');
         } catch (err) {
-            setErrors({ general: 'An error occurred while saving the stream' });
+            const errorMessage = 'An error occurred while saving the stream';
+            setErrors({ general: errorMessage });
+            toast.error(errorMessage);
         } finally {
             setLoading(false);
         }
