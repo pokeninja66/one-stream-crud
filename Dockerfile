@@ -89,7 +89,31 @@ RUN npm run build
 # Remove development dependencies after build
 RUN npm prune --production
 
+# Create www-data user and set proper permissions
+RUN addgroup -g 1000 www-data && \
+    adduser -D -s /bin/sh -u 1000 -G www-data www-data && \
+    chown -R www-data:www-data /var/www/html && \
+    chmod -R 755 /var/www/html/storage && \
+    chmod -R 755 /var/www/html/bootstrap/cache
+
 # Configure PHP-FPM
+RUN sed -i 's/user = nobody/user = www-data/' /etc/php83/php-fpm.d/www.conf \
+    && sed -i 's/group = nobody/group = www-data/' /etc/php83/php-fpm.d/www.conf \
+    && sed -i 's/listen.owner = nobody/listen.owner = www-data/' /etc/php83/php-fpm.d/www.conf \
+    && sed -i 's/listen.group = nobody/listen.group = www-data/' /etc/php83/php-fpm.d/www.conf \
+    && sed -i 's/;listen.mode = 0660/listen.mode = 0660/' /etc/php83/php-fpm.d/www.conf
+
+# Configure PHP
+RUN echo "memory_limit = 256M" >> /etc/php83/php.ini \
+    && echo "upload_max_filesize = 64M" >> /etc/php83/php.ini \
+    && echo "post_max_size = 64M" >> /etc/php83/php.ini \
+    && echo "max_execution_time = 300" >> /etc/php83/php.ini \
+    && echo "opcache.enable=1" >> /etc/php83/php.ini \
+    && echo "opcache.memory_consumption=128" >> /etc/php83/php.ini \
+    && echo "opcache.interned_strings_buffer=8" >> /etc/php83/php.ini \
+    && echo "opcache.max_accelerated_files=4000" >> /etc/php83/php.ini \
+    && echo "opcache.revalidate_freq=2" >> /etc/php83/php.ini \
+    && echo "opcache.fast_shutdown=1" >> /etc/php83/php.ini
 
 # Configure NGINX
 COPY docker/nginx.conf /etc/nginx/nginx.conf
