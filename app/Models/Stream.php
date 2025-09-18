@@ -22,6 +22,12 @@ class Stream extends Model
         'date_expiration',
     ];
 
+    protected $casts = [
+        'date_expiration' => 'datetime',
+        'created_at' => 'datetime',
+        'updated_at' => 'datetime',
+    ];
+
     protected static function booted()
     {
         static::creating(function ($stream) {
