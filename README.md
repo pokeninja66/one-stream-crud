@@ -15,7 +15,7 @@ A Laravel-based API for managing streams and stream types with a React frontend.
 
 ### Prerequisites
 
-- PHP 8.2+
+- PHP 8.3+
 - Composer
 - Node.js 18+
 - SQLite (for local development)
@@ -74,7 +74,7 @@ php artisan test tests/Feature/Api
 ### Docker Configuration
 
 The application uses a custom Dockerfile based on nginx-php-fpm with:
-- PHP 8.2 with all required extensions
+- PHP 8.3 with all required extensions
 - NGINX web server
 - Node.js for frontend asset building
 - Optimized PHP-FPM configuration
