@@ -1,18 +1,18 @@
-import { useState, useEffect } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { DateTimePicker } from '@/components/ui/date-time-picker';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { DateTimePicker } from '@/components/ui/date-time-picker';
 import AppLayout from '@/layouts/app-layout';
 import { dashboard } from '@/routes';
 import { type BreadcrumbItem, type Stream, type StreamType } from '@/types';
 import { Head, router } from '@inertiajs/react';
-import { Plus, ExternalLink, Database, Zap, Users, TrendingUp, Edit, Trash2, Calendar, DollarSign, Tag, LoaderCircle } from 'lucide-react';
+import { Calendar, Database, DollarSign, Edit, ExternalLink, LoaderCircle, Plus, Tag, Trash2, Users, Zap } from 'lucide-react';
+import { useEffect, useState } from 'react';
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
@@ -44,11 +44,8 @@ export default function Dashboard() {
         try {
             setLoading(true);
             setError(null);
-            
-            const [streamsResponse, typesResponse] = await Promise.all([
-                fetch('/api/streams'),
-                fetch('/api/stream-types')
-            ]);
+
+            const [streamsResponse, typesResponse] = await Promise.all([fetch('/api/streams'), fetch('/api/stream-types')]);
 
             if (!streamsResponse.ok || !typesResponse.ok) {
                 throw new Error('Failed to fetch data');
@@ -56,7 +53,7 @@ export default function Dashboard() {
 
             const streamsData = await streamsResponse.json();
             const typesData = await typesResponse.json();
-            
+
             setStreams(streamsData.data || []);
             setStreamTypes(typesData);
         } catch (err) {
@@ -84,7 +81,7 @@ export default function Dashboard() {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'Accept': 'application/json',
+                    Accept: 'application/json',
                 },
                 body: JSON.stringify({
                     ...streamFormData,
@@ -132,7 +129,7 @@ export default function Dashboard() {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'Accept': 'application/json',
+                    Accept: 'application/json',
                 },
                 body: JSON.stringify(typeFormData),
             });
@@ -188,9 +185,7 @@ export default function Dashboard() {
                 {/* Welcome Section */}
                 <div className="space-y-2">
                     <h1 className="text-3xl font-bold tracking-tight">Welcome to Streams CRUD</h1>
-                    <p className="text-muted-foreground">
-                        Manage your web streams with our comprehensive CRUD API system.
-                    </p>
+                    <p className="text-muted-foreground">Manage your web streams with our comprehensive CRUD API system.</p>
                 </div>
 
                 {/* Quick Stats */}
@@ -214,9 +209,7 @@ export default function Dashboard() {
                         </CardHeader>
                         <CardContent>
                             <div className="text-2xl font-bold">{loading ? '...' : streamTypes.length}</div>
-                            <p className="text-xs text-muted-foreground">
-                                {loading ? 'Loading...' : 'Available categories'}
-                            </p>
+                            <p className="text-xs text-muted-foreground">{loading ? 'Loading...' : 'Available categories'}</p>
                         </CardContent>
                     </Card>
                     <Card>
@@ -236,9 +229,7 @@ export default function Dashboard() {
                     <Card>
                         <CardHeader>
                             <CardTitle>Stream Management</CardTitle>
-                            <CardDescription>
-                                Create, view, edit, and delete streams with our intuitive interface.
-                            </CardDescription>
+                            <CardDescription>Create, view, edit, and delete streams with our intuitive interface.</CardDescription>
                         </CardHeader>
                         <CardContent className="space-y-4">
                             <div className="flex flex-wrap gap-2">
@@ -261,9 +252,7 @@ export default function Dashboard() {
                                     <DialogContent className="max-w-md">
                                         <DialogHeader>
                                             <DialogTitle>Create Stream</DialogTitle>
-                                            <DialogDescription>
-                                                Add a new stream to your collection.
-                                            </DialogDescription>
+                                            <DialogDescription>Add a new stream to your collection.</DialogDescription>
                                         </DialogHeader>
                                         <div className="space-y-4">
                                             {formErrors.general && (
@@ -276,13 +265,11 @@ export default function Dashboard() {
                                                 <Input
                                                     id="title"
                                                     value={streamFormData.title}
-                                                    onChange={(e) => setStreamFormData(prev => ({ ...prev, title: e.target.value }))}
+                                                    onChange={(e) => setStreamFormData((prev) => ({ ...prev, title: e.target.value }))}
                                                     placeholder="Enter stream title"
                                                     className={formErrors.title ? 'border-destructive' : ''}
                                                 />
-                                                {formErrors.title && (
-                                                    <p className="text-sm text-destructive">{formErrors.title}</p>
-                                                )}
+                                                {formErrors.title && <p className="text-sm text-destructive">{formErrors.title}</p>}
                                             </div>
                                             <div className="space-y-2">
                                                 <Label htmlFor="tokens_price">Tokens Price *</Label>
@@ -291,7 +278,9 @@ export default function Dashboard() {
                                                     type="number"
                                                     min="1"
                                                     value={streamFormData.tokens_price}
-                                                    onChange={(e) => setStreamFormData(prev => ({ ...prev, tokens_price: parseInt(e.target.value) || 1 }))}
+                                                    onChange={(e) =>
+                                                        setStreamFormData((prev) => ({ ...prev, tokens_price: parseInt(e.target.value) || 1 }))
+                                                    }
                                                     placeholder="Enter price in tokens"
                                                 />
                                             </div>
@@ -299,7 +288,12 @@ export default function Dashboard() {
                                                 <Label htmlFor="stream_type_id">Stream Type</Label>
                                                 <Select
                                                     value={streamFormData.stream_type_id?.toString() || 'none'}
-                                                    onValueChange={(value) => setStreamFormData(prev => ({ ...prev, stream_type_id: value === 'none' ? undefined : parseInt(value) }))}
+                                                    onValueChange={(value) =>
+                                                        setStreamFormData((prev) => ({
+                                                            ...prev,
+                                                            stream_type_id: value === 'none' ? undefined : parseInt(value),
+                                                        }))
+                                                    }
                                                 >
                                                     <SelectTrigger>
                                                         <SelectValue placeholder="Select stream type" />
@@ -318,7 +312,7 @@ export default function Dashboard() {
                                                 <Label htmlFor="date_expiration">Expiration Date *</Label>
                                                 <DateTimePicker
                                                     value={streamFormData.date_expiration}
-                                                    onChange={(value) => setStreamFormData(prev => ({ ...prev, date_expiration: value }))}
+                                                    onChange={(value) => setStreamFormData((prev) => ({ ...prev, date_expiration: value }))}
                                                     placeholder="Select expiration date and time"
                                                 />
                                             </div>
@@ -341,9 +335,7 @@ export default function Dashboard() {
                     <Card>
                         <CardHeader>
                             <CardTitle>Stream Types</CardTitle>
-                            <CardDescription>
-                                Manage stream type categories for better organization.
-                            </CardDescription>
+                            <CardDescription>Manage stream type categories for better organization.</CardDescription>
                         </CardHeader>
                         <CardContent className="space-y-4">
                             <div className="flex flex-wrap gap-2">
@@ -366,9 +358,7 @@ export default function Dashboard() {
                                     <DialogContent>
                                         <DialogHeader>
                                             <DialogTitle>Create Stream Type</DialogTitle>
-                                            <DialogDescription>
-                                                Add a new stream type category.
-                                            </DialogDescription>
+                                            <DialogDescription>Add a new stream type category.</DialogDescription>
                                         </DialogHeader>
                                         <div className="space-y-4">
                                             {formErrors.general && (
@@ -385,9 +375,7 @@ export default function Dashboard() {
                                                     placeholder="Enter stream type name"
                                                     className={formErrors.name ? 'border-destructive' : ''}
                                                 />
-                                                {formErrors.name && (
-                                                    <p className="text-sm text-destructive">{formErrors.name}</p>
-                                                )}
+                                                {formErrors.name && <p className="text-sm text-destructive">{formErrors.name}</p>}
                                             </div>
                                         </div>
                                         <DialogFooter>
@@ -410,30 +398,26 @@ export default function Dashboard() {
                 <Card>
                     <CardHeader>
                         <CardTitle>Recent Streams</CardTitle>
-                        <CardDescription>
-                            Your latest streams with quick actions.
-                        </CardDescription>
+                        <CardDescription>Your latest streams with quick actions.</CardDescription>
                     </CardHeader>
                     <CardContent>
                         {loading ? (
                             <div className="space-y-4">
                                 {Array.from({ length: 3 }).map((_, i) => (
                                     <div key={i} className="flex items-center space-x-4">
-                                        <div className="h-12 w-12 rounded-lg bg-muted animate-pulse" />
-                                        <div className="space-y-2 flex-1">
-                                            <div className="h-4 w-3/4 bg-muted rounded animate-pulse" />
-                                            <div className="h-3 w-1/2 bg-muted rounded animate-pulse" />
+                                        <div className="h-12 w-12 animate-pulse rounded-lg bg-muted" />
+                                        <div className="flex-1 space-y-2">
+                                            <div className="h-4 w-3/4 animate-pulse rounded bg-muted" />
+                                            <div className="h-3 w-1/2 animate-pulse rounded bg-muted" />
                                         </div>
                                     </div>
                                 ))}
                             </div>
                         ) : streams.length === 0 ? (
-                            <div className="text-center py-8">
+                            <div className="py-8 text-center">
                                 <Database className="mx-auto h-12 w-12 text-muted-foreground" />
                                 <h3 className="mt-2 text-sm font-semibold">No streams</h3>
-                                <p className="mt-1 text-sm text-muted-foreground">
-                                    Get started by creating a new stream.
-                                </p>
+                                <p className="mt-1 text-sm text-muted-foreground">Get started by creating a new stream.</p>
                                 <div className="mt-6">
                                     <Button onClick={() => setIsCreateStreamDialogOpen(true)}>
                                         <Plus className="mr-2 h-4 w-4" />
@@ -444,65 +428,63 @@ export default function Dashboard() {
                         ) : (
                             <div className="space-y-4">
                                 {streams.slice(0, 5).map((stream) => (
-                                    <div key={stream.id} className="flex items-center justify-between p-4 border rounded-lg">
-                                        <div className="flex items-center space-x-4">
-                                            <div className="h-12 w-12 rounded-lg bg-primary/10 flex items-center justify-center">
-                                                <Database className="h-6 w-6 text-primary" />
-                                            </div>
-                                            <div>
-                                                <h4 className="font-medium">{stream.title}</h4>
-                                                <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                                                    <span className="flex items-center gap-1">
-                                                        <DollarSign className="h-3 w-3" />
-                                                        {stream.tokens_price} tokens
-                                                    </span>
-                                                    <span className="flex items-center gap-1">
-                                                        <Calendar className="h-3 w-3" />
-                                                        {formatDate(stream.date_expiration)}
-                                                    </span>
-                                                    {stream.type && (
-                                                        <Badge variant="secondary" className="text-xs">
-                                                            <Tag className="mr-1 h-3 w-3" />
-                                                            {stream.type.name}
-                                                        </Badge>
-                                                    )}
+                                    <div key={stream.id} className="rounded-lg border p-4">
+                                        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                                            <div className="flex min-w-0 flex-1 items-center space-x-4">
+                                                <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-lg bg-primary/10">
+                                                    <Database className="h-6 w-6 text-primary" />
+                                                </div>
+                                                <div className="min-w-0 flex-1">
+                                                    <h4 className="truncate font-medium">{stream.title}</h4>
+                                                    <div className="flex flex-col gap-2 text-sm text-muted-foreground sm:flex-row sm:items-center sm:gap-4">
+                                                        <span className="flex items-center gap-1">
+                                                            <DollarSign className="h-3 w-3" />
+                                                            {stream.tokens_price} tokens
+                                                        </span>
+                                                        <span className="flex items-center gap-1">
+                                                            <Calendar className="h-3 w-3" />
+                                                            {formatDate(stream.date_expiration)}
+                                                        </span>
+                                                        {stream.type && (
+                                                            <Badge variant="secondary" className="w-fit text-xs">
+                                                                <Tag className="mr-1 h-3 w-3" />
+                                                                {stream.type.name}
+                                                            </Badge>
+                                                        )}
+                                                    </div>
                                                 </div>
                                             </div>
-                                        </div>
-                                        <div className="flex gap-2">
-                                            <Button
-                                                variant="outline"
-                                                size="sm"
-                                                onClick={() => router.visit(`/streams/${stream.id}/edit`)}
-                                            >
-                                                <Edit className="h-3 w-3" />
-                                            </Button>
-                                            <Dialog>
-                                                <DialogTrigger asChild>
-                                                    <Button variant="outline" size="sm" className="text-destructive hover:text-destructive">
-                                                        <Trash2 className="h-3 w-3" />
-                                                    </Button>
-                                                </DialogTrigger>
-                                                <DialogContent>
-                                                    <DialogHeader>
-                                                        <DialogTitle>Delete Stream</DialogTitle>
-                                                        <DialogDescription>
-                                                            Are you sure you want to delete "{stream.title}"? This action cannot be undone.
-                                                        </DialogDescription>
-                                                    </DialogHeader>
-                                                    <DialogFooter>
-                                                        <Button variant="outline">Cancel</Button>
-                                                        <Button variant="destructive" onClick={() => handleDeleteStream(stream.id)}>
-                                                            Delete
+                                            <div className="flex flex-shrink-0 gap-2 mx-auto">
+                                                <Button variant="outline" size="sm" onClick={() => router.visit(`/streams/${stream.id}/edit`)}>
+                                                    <Edit className="h-3 w-3" />
+                                                </Button>
+                                                <Dialog>
+                                                    <DialogTrigger asChild>
+                                                        <Button variant="outline" size="sm" className="text-destructive hover:text-destructive">
+                                                            <Trash2 className="h-3 w-3" />
                                                         </Button>
-                                                    </DialogFooter>
-                                                </DialogContent>
-                                            </Dialog>
+                                                    </DialogTrigger>
+                                                    <DialogContent>
+                                                        <DialogHeader>
+                                                            <DialogTitle>Delete Stream</DialogTitle>
+                                                            <DialogDescription>
+                                                                Are you sure you want to delete "{stream.title}"? This action cannot be undone.
+                                                            </DialogDescription>
+                                                        </DialogHeader>
+                                                        <DialogFooter>
+                                                            <Button variant="outline">Cancel</Button>
+                                                            <Button variant="destructive" onClick={() => handleDeleteStream(stream.id)}>
+                                                                Delete
+                                                            </Button>
+                                                        </DialogFooter>
+                                                    </DialogContent>
+                                                </Dialog>
+                                            </div>
                                         </div>
                                     </div>
                                 ))}
                                 {streams.length > 5 && (
-                                    <div className="text-center pt-4">
+                                    <div className="pt-4 text-center">
                                         <Button variant="outline" onClick={() => router.visit('/streams')}>
                                             View All Streams
                                         </Button>
@@ -517,9 +499,7 @@ export default function Dashboard() {
                 <Card>
                     <CardHeader>
                         <CardTitle>API Documentation</CardTitle>
-                        <CardDescription>
-                            Explore our comprehensive API documentation with Swagger UI.
-                        </CardDescription>
+                        <CardDescription>Explore our comprehensive API documentation with Swagger UI.</CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-4">
                         <div className="flex flex-wrap gap-2">

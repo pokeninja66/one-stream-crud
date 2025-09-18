@@ -137,14 +137,14 @@ export default function StreamsIndex() {
             <Head title="Streams" />
             <div className="flex h-full flex-1 flex-col gap-6 overflow-x-auto rounded-xl p-4">
                 {/* Header */}
-                <div className="flex items-center justify-between">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                     <div>
-                        <h1 className="text-3xl font-bold tracking-tight">Streams</h1>
+                        <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Streams</h1>
                         <p className="text-muted-foreground">
                             Manage your web streams with full CRUD operations
                         </p>
                     </div>
-                    <Button onClick={() => router.visit('/streams/create')}>
+                    <Button onClick={() => router.visit('/streams/create')} className="self-start sm:self-auto">
                         <Plus className="mr-2 h-4 w-4" />
                         Create Stream
                     </Button>
@@ -324,27 +324,27 @@ export default function StreamsIndex() {
                                             </div>
                                         </div>
 
-                                        <div className="flex gap-2">
+                                        <div className="flex flex-wrap gap-2">
                                             <Button 
                                                 variant="outline" 
                                                 size="sm" 
-                                                className="flex-1"
+                                                className="flex-1 min-w-0"
                                                 onClick={() => {
                                                     setSelectedStreamData(stream);
                                                     setIsJsonModalOpen(true);
                                                 }}
                                             >
                                                 <Eye className="mr-1 h-3 w-3" />
-                                                View
+                                                <span className="hidden sm:inline">View</span>
                                             </Button>
                                             <Button 
                                                 variant="outline" 
                                                 size="sm" 
-                                                className="flex-1"
+                                                className="flex-1 min-w-0"
                                                 onClick={() => router.visit(`/streams/${stream.id}/edit`)}
                                             >
                                                 <Edit className="mr-1 h-3 w-3" />
-                                                Edit
+                                                <span className="hidden sm:inline">Edit</span>
                                             </Button>
 
                                             <Dialog>
@@ -352,10 +352,10 @@ export default function StreamsIndex() {
                                                     <Button 
                                                         variant="outline" 
                                                         size="sm" 
-                                                        className="flex-1 text-destructive hover:text-destructive"
+                                                        className="flex-1 min-w-0 text-destructive hover:text-destructive"
                                                     >
                                                         <Trash2 className="mr-1 h-3 w-3" />
-                                                        Delete
+                                                        <span className="hidden sm:inline">Delete</span>
                                                     </Button>
                                                 </DialogTrigger>
                                                 <DialogContent>
