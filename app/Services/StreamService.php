@@ -9,28 +9,52 @@ class StreamService
 {
     /**
      * List streams with filtering, ordering, and pagination
+     * Supports both simple query params and JSON:API-style filters
      */
     public function list(array $filters = [], int $perPage = 15): LengthAwarePaginator
     {
         $query = Stream::query()->with('type');
 
+        // Accept both styles: filter[] ( JSON:API-style) and simple query params
+        // NOTE: This is a hack to support both styles for now. Not sure if it's allowed to use spatie/laravel-query-builder for this.
+        // 
+        $search = $filters['search'] 
+            ?? $filters['q'] 
+            ?? $filters['filter']['search'] 
+            ?? null;
+
+        $type = $filters['stream_type_id'] 
+            ?? $filters['type'] 
+            ?? $filters['filter']['stream_type_id'] 
+            ?? null;
+
+        $sort = $filters['sort'] 
+            ?? $filters['order_by'] 
+            ?? null;
+
+        $dir = $filters['order_dir'] ?? 'asc';
+
         // Search filter
-        if (!empty($filters['q'])) {
-            $query->where(function ($q) use ($filters) {
-                $q->where('title', 'like', '%' . $filters['q'] . '%')
-                  ->orWhere('description', 'like', '%' . $filters['q'] . '%');
+        if ($search) {
+            $query->where(function ($q) use ($search) {
+                $q->where('title', 'like', "%{$search}%")
+                  ->orWhere('description', 'like', "%{$search}%");
             });
         }
 
         // Type filter
-        if (!empty($filters['type'])) {
-            $query->where('stream_type_id', $filters['type']);
+        if ($type) {
+            $query->where('stream_type_id', $type);
         }
 
-        // Ordering
-        if (!empty($filters['order_by'])) {
-            $direction = $filters['order_dir'] ?? 'asc';
-            $query->orderBy($filters['order_by'], $direction);
+        // Sorting
+        if ($sort) {
+            // Support JSON:API style: sort=-date_expiration
+            if (str_starts_with($sort, '-')) {
+                $query->orderBy(ltrim($sort, '-'), 'desc');
+            } else {
+                $query->orderBy($sort, $dir);
+            }
         } else {
             // Default ordering by creation date
             $query->orderBy('created_at', 'desc');

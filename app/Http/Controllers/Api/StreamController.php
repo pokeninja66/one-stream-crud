@@ -19,10 +19,12 @@ class StreamController extends Controller
      */
     public function index(Request $request)
     {
-        $filters = $request->only(['q', 'type', 'order_by', 'order_dir']);
+        // Grab all query params (supports both flat and filter[] style)
+        $filters = $request->all();
         $perPage = (int) $request->get('per_page', 15);
 
         $streams = $this->service->list($filters, $perPage);
+
         return StreamResource::collection($streams);
     }
  
