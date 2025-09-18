@@ -63,7 +63,7 @@ RUN composer install --no-dev --optimize-autoloader --no-interaction --no-script
 # Copy package files
 COPY package.json package-lock.json ./
 
-# Install Node dependencies (including dev dependencies for build)
+# Install Node dependencies
 RUN npm ci
 
 # Copy application code
@@ -89,17 +89,8 @@ RUN npm run build
 # Remove development dependencies after build
 RUN npm prune --production
 
-# Set proper permissions
-RUN chown -R www-data:www-data /var/www/html \
-    && chmod -R 755 /var/www/html/storage \
-    && chmod -R 755 /var/www/html/bootstrap/cache
-
 # Configure PHP-FPM
-RUN sed -i 's/user = nobody/user = www-data/' /etc/php83/php-fpm.d/www.conf \
-    && sed -i 's/group = nobody/group = www-data/' /etc/php83/php-fpm.d/www.conf \
-    && sed -i 's/listen.owner = nobody/listen.owner = www-data/' /etc/php83/php-fpm.d/www.conf \
-    && sed -i 's/listen.group = nobody/listen.group = www-data/' /etc/php83/php-fpm.d/www.conf \
-    && sed -i 's/;listen.mode = 0660/listen.mode = 0660/' /etc/php83/php-fpm.d/www.conf
+RUN sed -i 's/;listen.mode = 0660/listen.mode = 0660/' /etc/php83/php-fpm.d/www.conf
 
 # Configure PHP
 RUN echo "memory_limit = 256M" >> /etc/php83/php.ini \

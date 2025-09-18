@@ -34,8 +34,4 @@ php artisan db:seed --force
 echo "Clearing and optimizing caches..."
 php artisan optimize
 
-echo "Setting storage permissions..."
-chmod -R 755 storage
-chmod -R 755 bootstrap/cache
-
 echo "Deployment completed successfully!"
