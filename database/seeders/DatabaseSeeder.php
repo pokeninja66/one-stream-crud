@@ -26,7 +26,9 @@ class DatabaseSeeder extends Seeder
         );
 
         $this->call([
+            UsersSeeder::class,
             StreamTypesSeeder::class,
+            StreamsSeeder::class,
         ]);
     }
 }
