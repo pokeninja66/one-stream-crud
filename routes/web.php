@@ -11,6 +11,22 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('dashboard', function () {
         return Inertia::render('dashboard');
     })->name('dashboard');
+    
+    Route::get('streams', function () {
+        return Inertia::render('streams/index');
+    })->name('streams.index');
+    
+    Route::get('streams/create', function () {
+        return Inertia::render('streams/create');
+    })->name('streams.create');
+    
+    Route::get('streams/{id}/edit', function ($id) {
+        return Inertia::render('streams/edit', ['streamId' => $id]);
+    })->name('streams.edit');
+    
+    Route::get('stream-types', function () {
+        return Inertia::render('stream-types/index');
+    })->name('stream-types.index');
 });
 
 require __DIR__.'/settings.php';

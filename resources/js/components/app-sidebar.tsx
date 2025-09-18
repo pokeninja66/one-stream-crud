@@ -5,7 +5,7 @@ import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarMenu, Sid
 import { dashboard } from '@/routes';
 import { type NavItem } from '@/types';
 import { Link } from '@inertiajs/react';
-import { BookOpen, Folder, LayoutGrid } from 'lucide-react';
+import { BookOpen, Folder, LayoutGrid, Database, Tag, ExternalLink } from 'lucide-react';
 import AppLogo from './app-logo';
 
 const mainNavItems: NavItem[] = [
@@ -14,9 +14,24 @@ const mainNavItems: NavItem[] = [
         href: dashboard(),
         icon: LayoutGrid,
     },
+    {
+        title: 'Streams',
+        href: '/streams',
+        icon: Database,
+    },
+    {
+        title: 'Stream Types',
+        href: '/stream-types',
+        icon: Tag,
+    },
 ];
 
 const footerNavItems: NavItem[] = [
+    {
+        title: 'API Documentation',
+        href: '/api/documentation',
+        icon: ExternalLink,
+    },
     {
         title: 'Repository',
         href: 'https://github.com/laravel/react-starter-kit',
