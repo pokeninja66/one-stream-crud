@@ -70,12 +70,12 @@ RUN npm ci
 COPY . .
 
 # Create minimal .env file for build
-RUN echo "APP_NAME=\"One Stream CRUD API\"" > .env \
-    && echo "APP_ENV=local" >> .env \
-    && echo "APP_KEY=" >> .env \
-    && echo "APP_DEBUG=true" >> .env \
-    && echo "DB_CONNECTION=sqlite" >> .env \
-    && echo "DB_DATABASE=database/database.sqlite" >> .env
+# RUN echo "APP_NAME=\"One Stream CRUD API\"" > .env \
+#     && echo "APP_ENV=local" >> .env \
+#     && echo "APP_KEY=" >> .env \
+#     && echo "APP_DEBUG=true" >> .env \
+#     && echo "DB_CONNECTION=sqlite" >> .env \
+#     && echo "DB_DATABASE=database/database.sqlite" >> .env
 
 # Generate application key if not exists
 RUN php artisan key:generate --ansi || true
