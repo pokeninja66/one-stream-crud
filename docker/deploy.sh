@@ -13,8 +13,8 @@ npm run build
 echo "Removing development dependencies..."
 npm prune --production
 
-echo "Generating application key..."
-php artisan key:generate --ansi || true
+# echo "Generating application key..."
+# php artisan key:generate --ansi || true
 
 echo "Caching config..."
 php artisan config:cache
