@@ -2,7 +2,7 @@
 set -e
 
 echo "Starting PHP-FPM..."
-php-fpm83 -D
+php-fpm83 -F -R
 
 echo "Configuring NGINX for port ${PORT:-80}..."
 # Replace port in nginx config
