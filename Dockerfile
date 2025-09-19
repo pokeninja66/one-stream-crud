@@ -89,19 +89,12 @@ RUN npm run build
 # Remove development dependencies after build
 RUN npm prune --production
 
-# Create www-data user and set proper permissions
-RUN addgroup -g 1000 www-data && \
-    adduser -D -s /bin/sh -u 1000 -G www-data www-data && \
-    chown -R www-data:www-data /var/www/html && \
-    chmod -R 755 /var/www/html/storage && \
-    chmod -R 755 /var/www/html/bootstrap/cache
+# Set proper permissions for Laravel storage directories
+RUN chmod -R 777 /var/www/html/storage && \
+    chmod -R 777 /var/www/html/bootstrap/cache
 
-# Configure PHP-FPM
-RUN sed -i 's/user = nobody/user = www-data/' /etc/php83/php-fpm.d/www.conf \
-    && sed -i 's/group = nobody/group = www-data/' /etc/php83/php-fpm.d/www.conf \
-    && sed -i 's/listen.owner = nobody/listen.owner = www-data/' /etc/php83/php-fpm.d/www.conf \
-    && sed -i 's/listen.group = nobody/listen.group = www-data/' /etc/php83/php-fpm.d/www.conf \
-    && sed -i 's/;listen.mode = 0660/listen.mode = 0660/' /etc/php83/php-fpm.d/www.conf
+# Configure PHP-FPM to run as root (simpler for containers)
+RUN sed -i 's/;listen.mode = 0660/listen.mode = 0660/' /etc/php83/php-fpm.d/www.conf
 
 # Configure PHP
 RUN echo "memory_limit = 256M" >> /etc/php83/php.ini \
