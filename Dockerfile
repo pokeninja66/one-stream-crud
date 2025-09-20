@@ -1,121 +1,24 @@
-FROM nginx:alpine
+FROM richarvey/nginx-php-fpm:3.1.6
 
-# Install PHP and PHP-FPM
-RUN apk add --no-cache \
-    php83 \
-    php83-fpm \
-    php83-mysqli \
-    php83-pdo \
-    php83-pdo_mysql \
-    php83-pdo_sqlite \
-    php83-mbstring \
-    php83-xml \
-    php83-curl \
-    php83-zip \
-    php83-gd \
-    php83-intl \
-    php83-bcmath \
-    php83-fileinfo \
-    php83-openssl \
-    php83-tokenizer \
-    php83-ctype \
-    php83-json \
-    php83-dom \
-    php83-simplexml \
-    php83-xmlreader \
-    php83-xmlwriter \
-    php83-phar \
-    php83-opcache \
-    php83-pcntl \
-    php83-posix \
-    php83-sockets \
-    php83-sysvmsg \
-    php83-sysvsem \
-    php83-sysvshm \
-    php83-shmop \
-    php83-sodium \
-    php83-iconv \
-    php83-calendar \
-    php83-exif \
-    php83-gettext \
-    php83-imap \
-    php83-ldap \
-    php83-pgsql \
-    php83-pdo_pgsql \
-    php83-redis \
-    php83-soap \
-    php83-xsl \
-    php83-zlib \
-    php83-session \
-    composer \
-    nodejs \
-    npm
-
-# Set working directory
 WORKDIR /var/www/html
 
-# Copy composer files first for better caching
-COPY composer.json composer.lock ./
-
-# Install PHP dependencies without scripts
-RUN composer install --no-dev --optimize-autoloader --no-interaction --no-scripts
-
-# Copy package files
-COPY package.json package-lock.json ./
-
-# Install Node dependencies
-RUN npm ci
-
-# Copy application code
+# Copy app code
 COPY . .
 
-# Create minimal .env file for build
-# RUN echo "APP_NAME=\"One Stream CRUD API\"" > .env \
-#     && echo "APP_ENV=local" >> .env \
-#     && echo "APP_KEY=" >> .env \
-#     && echo "APP_DEBUG=true" >> .env \
-#     && echo "DB_CONNECTION=sqlite" >> .env \
-#     && echo "DB_DATABASE=database/database.sqlite" >> .env
+# Laravel/Composer environment
+ENV SKIP_COMPOSER 1
+ENV WEBROOT /var/www/html/public
+ENV PHP_ERRORS_STDERR 1
+ENV RUN_SCRIPTS 1
+ENV REAL_IP_HEADER 1
+ENV APP_ENV production
+ENV APP_DEBUG false
+ENV LOG_CHANNEL stderr
+ENV COMPOSER_ALLOW_SUPERUSER 1
 
-# Generate application key if not exists
-RUN php artisan key:generate --ansi || true
+# Copy our custom start script
+COPY docker/start.sh /usr/local/bin/start.sh
+RUN chmod +x /usr/local/bin/start.sh
 
-# Run Laravel post-install scripts
-RUN php artisan package:discover --ansi
-
-# Build frontend assets
-RUN npm run build
-
-# Remove development dependencies after build
-RUN npm prune --production
-
-# Set proper permissions for Laravel storage directories
-RUN chmod -R 777 /var/www/html/storage && \
-    chmod -R 777 /var/www/html/bootstrap/cache
-
-# Configure PHP-FPM to run as root (simpler for containers)
-RUN sed -i 's/;listen.mode = 0660/listen.mode = 0660/' /etc/php83/php-fpm.d/www.conf
-
-# Configure PHP
-RUN echo "memory_limit = 256M" >> /etc/php83/php.ini \
-    && echo "upload_max_filesize = 64M" >> /etc/php83/php.ini \
-    && echo "post_max_size = 64M" >> /etc/php83/php.ini \
-    && echo "max_execution_time = 300" >> /etc/php83/php.ini \
-    && echo "opcache.enable=1" >> /etc/php83/php.ini \
-    && echo "opcache.memory_consumption=128" >> /etc/php83/php.ini \
-    && echo "opcache.interned_strings_buffer=8" >> /etc/php83/php.ini \
-    && echo "opcache.max_accelerated_files=4000" >> /etc/php83/php.ini \
-    && echo "opcache.revalidate_freq=2" >> /etc/php83/php.ini \
-    && echo "opcache.fast_shutdown=1" >> /etc/php83/php.ini
-
-# Configure NGINX
-COPY docker/nginx.conf /etc/nginx/nginx.conf
-
-# Create startup and deploy scripts
-COPY docker/start.sh /start.sh
-COPY docker/deploy.sh /deploy.sh
-RUN chmod +x /start.sh /deploy.sh
-
-EXPOSE 80
-
-CMD ["/start.sh"]
+# Use our script as entrypoint (it runs then hands back to parent)
+CMD ["/usr/local/bin/start.sh"]
