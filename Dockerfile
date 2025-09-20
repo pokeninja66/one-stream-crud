@@ -2,6 +2,18 @@ FROM richarvey/nginx-php-fpm:3.1.6
 
 WORKDIR /var/www/html
 
+# Copy composer files first for better caching
+COPY composer.json composer.lock ./
+
+# Install PHP dependencies
+RUN composer install --no-dev --optimize-autoloader --no-interaction
+
+# Copy package files for Node.js dependencies
+COPY package.json package-lock.json ./
+
+# Install Node.js dependencies and build assets
+RUN npm ci && npm run build && npm prune --production
+
 # Copy app code
 COPY . .
 
@@ -20,5 +32,4 @@ ENV COMPOSER_ALLOW_SUPERUSER 1
 COPY docker/start.sh /usr/local/bin/start.sh
 RUN chmod +x /usr/local/bin/start.sh
 
-# Use our script as entrypoint (it runs then hands back to parent)
 CMD ["/usr/local/bin/start.sh"]
