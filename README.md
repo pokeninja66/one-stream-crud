@@ -1,17 +1,20 @@
 # One Stream CRUD API
 
-A Laravel-based API for managing streams and stream types with a React frontend.
+A full-stack application built with a Laravel backend and a React/TypeScript frontend for managing web streams. The application is containerized with Docker and configured for seamless deployment on Render.com.
 
 ## Features
 
-- RESTful API for streams and stream types
-- Comprehensive test coverage
-- Docker containerization
-- PostgreSQL database support
-- Swagger API documentation
-- React frontend with Inertia.js
+- **Backend**: RESTful API built with Laravel (PHP 8.3).
+- **Frontend**: Modern UI built with React, TypeScript, Inertia.js, and Tailwind CSS.
+- **Database**: Supports PostgreSQL for production and SQLite for local development.
+- **API Documentation**: Integrated Swagger UI for interactive API documentation.
+- **Testing**: Comprehensive test suite using Pest for backend testing.
+- **Containerization**: Fully containerized using Docker with a multi-stage build for optimized production images.
+- **Deployment**: Continuous deployment configured for [Render.com](https://render.com/) via a `render.yaml` file.
 
 ## Local Development
+
+There are two ways to run the application locally: using PHP/Node directly or using Docker.
 
 ### Prerequisites
 
@@ -20,92 +23,167 @@ A Laravel-based API for managing streams and stream types with a React frontend.
 - Node.js 18+
 - SQLite (for local development)
 
-### Setup
+### 1. Standard Setup (PHP/Node)
 
-1. Clone the repository
-2. Install PHP dependencies:
-   ```bash
-   composer install
-   ```
+1.  **Clone the repository:**
+    ```bash
+    git clone https://github.com/pokeninja66/one-stream-crud.git
+    cd one-stream-crud
+    ```
 
-3. Install Node dependencies:
-   ```bash
-   npm install
-   ```
+2.  **Install dependencies:**
+    ```bash
+    composer install
+    npm install
+    ```
 
-4. Copy environment file:
-   ```bash
-   cp .env.example .env
-   ```
+3.  **Setup environment file:**
+    ```bash
+    cp .env.example .env
+    ```
 
-5. Generate application key:
-   ```bash
-   php artisan key:generate
-   ```
+4.  **Generate application key:**
+    ```bash
+    php artisan key:generate
+    ```
 
-6. Run migrations and seeders:
-   ```bash
-   php artisan migrate --seed
-   ```
+5.  **Setup database and seed data:**
+    *Ensure `database/database.sqlite` exists and is writable.*
+    ```bash
+    php artisan migrate --seed
+    ```
 
-7. Build frontend assets:
-   ```bash
-   npm run build
-   ```
+6.  **Build frontend assets:**
+    ```bash
+    npm run dev
+    ```
 
-8. Start the development server:
-   ```bash
-   php artisan serve
-   ```
+7.  **Start the development server:**
+    ```bash
+    php artisan serve
+    ```
+    The application will be available at `http://127.0.0.1:8000`.
+
+### 2. Docker Setup
+
+1.  **Build the Docker image:**
+    ```bash
+    docker build -t one-stream-crud .
+    ```
+
+2.  **Run the Docker container:**
+    *This command maps port 8080 on your local machine to port 80 inside the container.*
+    ```bash
+    docker run -p 8080:80 -e APP_KEY=$(php -r 'echo "base64:".base64_encode(random_bytes(32));') one-stream-crud
+    ```
+    The application will be available at `http://localhost:8080`.
+
+### Test Credentials
+
+You can log in to the application using the following test credentials:
+- **Email**: `test@example.com`
+- **Password**: `password`
 
 ## Testing
 
-Run the test suite:
+Run the full Pest test suite:
 ```bash
 php artisan test
 ```
 
-Run only API tests:
+Run only the API feature tests:
 ```bash
-php artisan test tests/Feature/Api
+php artisan test --group=api
 ```
 
+## API Documentation
 
-### Docker Configuration
-
-The application uses a custom Dockerfile based on nginx-php-fpm with:
-- PHP 8.3 with all required extensions
-- NGINX web server
-- Node.js for frontend asset building
-- Optimized PHP-FPM configuration
-- Security headers and caching
-
-### API Documentation
-
-Once deployed, API documentation is available at `/api/documentation` (Swagger UI).
+API documentation is generated using Swagger.
+-   **Locally**: Run `php artisan l5-swagger:generate` and access it at `/api/documentation`.
+-   **Production**: It is generated automatically on deployment and available at `https://one-stream-crud.onrender.com/api/documentation`.
 
 ## API Endpoints
 
+Below are the available API endpoints. For more detailed information, please refer to the [Swagger Documentation](#-api-documentation).
+
 ### Streams
-- `GET /api/streams` - List streams (with filtering, pagination, sorting)
-- `POST /api/streams` - Create a new stream
-- `GET /api/streams/{id}` - Get a specific stream
-- `PUT /api/streams/{id}` - Update a stream
-- `DELETE /api/streams/{id}` - Delete a stream
+
+#### `GET /api/streams`
+
+List all streams with support for filtering, sorting, and pagination.
+
+- **Query Parameters:**
+  - `search` (string): Filter by title or description.
+  - `stream_type_id` (int): Filter by a specific stream type ID.
+  - `order_by` (string): Field to sort by (`title`, `tokens_price`, `date_expiration`).
+  - `order_dir` (string): Sort direction (`asc` or `desc`).
+  - `per_page` (int): Number of results per page.
+
+- **Example Request:**
+  ```bash
+  curl "http://127.0.0.1:8000/api/streams?search=tutorial&order_by=title&order_dir=asc"
+  ```
+
+#### `POST /api/streams`
+
+Create a new stream.
+
+- **Request Body:**
+  ```json
+  {
+    "title": "New Stream Title",
+    "description": "A description for the new stream.",
+    "tokens_price": 100,
+    "stream_type_id": 1,
+    "date_expiration": "2024-12-31 23:59:59"
+  }
+  ```
+
+#### `GET /api/streams/{id}`
+
+Retrieve a single stream by its ID.
+
+#### `PUT /api/streams/{id}`
+
+Update an existing stream.
+
+- **Request Body:**
+  ```json
+  {
+    "title": "Updated Stream Title",
+    "tokens_price": 150
+  }
+  ```
+
+#### `DELETE /api/streams/{id}`
+
+Soft delete a stream.
 
 ### Stream Types
-- `GET /api/stream-types` - List stream types
-- `POST /api/stream-types` - Create a new stream type
-- `PUT /api/stream-types/{id}` - Update a stream type
-- `DELETE /api/stream-types/{id}` - Delete a stream type
 
-### User
-- `GET /api/user` - Get authenticated user (requires Sanctum - not configured)
+#### `GET /api/stream-types`
 
-## Database Schema
+List all available stream types.
 
-The application includes:
-- Users table (Laravel default)
-- Stream types table
-- Streams table (with soft deletes)
-- Proper relationships and constraints
+## Deployment on Render
+
+This project is configured for continuous deployment on Render. The `render.yaml` file in the root directory defines the services:
+-   A **web service** that builds the Docker image from the `Dockerfile` and runs the `start.sh` script.
+-   A **PostgreSQL database** service.
+
+The `start.sh` script handles deployment tasks such as running migrations, seeding the database, generating API docs, and starting the NGINX and PHP-FPM services.
+
+! NOTE: Currently there is some issue with the internal URL redirection of the swagger docs to my http port instead of the https one forced by render. Not sure how to fix it righ now so the API docs is currently only visible in development.
+
+### Production Environment Variables
+
+The following environment variables need to be configured on Render for the application to work correctly:
+
+| Key                           | Description                                            | Example Value                                |
+| ----------------------------- | ------------------------------------------------------ | -------------------------------------------- |
+| `APP_URL`                     | The public URL of the application.                     | `https://one-stream-crud.onrender.com`         |
+| `DATABASE_URL`                | The connection string for the PostgreSQL database.     | Provided by Render                           |
+| `APP_KEY`                     | Laravel application key.                               | `base64:...`                                 |
+| `L5_SWAGGER_CONST_HOST`       | The host for Swagger to generate documentation against.| `https://one-stream-crud.onrender.com`         |
+| `L5_SWAGGER_GENERATE_ALWAYS`  | Set to `true` to regenerate docs on each request.      | `true`                                       |
+| `L5_SWAGGER_PROXY`            | Set to your proxy IP or `*` to trust Render's proxy.   | `*`                                          |
