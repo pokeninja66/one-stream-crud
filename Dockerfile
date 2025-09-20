@@ -2,8 +2,8 @@ FROM richarvey/nginx-php-fpm:3.1.6
 
 WORKDIR /var/www/html
 
-# Install Node.js
-RUN apk add --no-cache nodejs npm
+# Install Node.js 20 (required for Vite 7.x)
+RUN apk add --no-cache --repository=https://dl-cdn.alpinelinux.org/alpine/edge/main nodejs npm
 
 # Copy composer files first for better caching
 COPY composer.json composer.lock ./

@@ -31,11 +31,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
     
     Route::get('stream-types', function () {
         return Inertia::render('stream-types/index');
-    })->name('stream-types.index');
+    })->name('stream-types.web.index');
     
     Route::get('users', function () {
         return Inertia::render('users/index');
-    })->name('users.index');
+    })->name('users.web.index');
 });
 
 require __DIR__.'/settings.php';
