@@ -51,7 +51,7 @@ php artisan vendor:publish --provider="L5Swagger\L5SwaggerServiceProvider"
 
 # Generate API documentation
 echo "Generating API documentation..."
-php artisan l5-swagger:generate
+php artisan idoc:generate
 
 # Copy and configure Swagger UI static assets
 echo "Copying and configuring Swagger UI assets..."
