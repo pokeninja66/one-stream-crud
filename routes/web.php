@@ -12,6 +12,9 @@ Route::get('/docs', function () {
     return redirect('/api/documentation');
 })->name('docs');
 
+// Route for iDoc Documentation
+Route::view('/idoc', 'idoc::documentation')->name('idoc');
+
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('dashboard', function () {
         return Inertia::render('dashboard');

@@ -34,7 +34,7 @@ const mainNavItems: NavItem[] = [
 const footerNavItems: NavItem[] = [
     {
         title: 'API Documentation',
-        href: '/api/documentation',
+        href: '/idoc',
         icon: ExternalLink,
     },
     {

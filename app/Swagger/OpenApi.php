@@ -4,7 +4,7 @@
  * @OA\Info(
  *     version="1.0.0",
  *     title="One Stream CRUD API",
- *     description="API documentation for the Streams CRUD system"
+ *     description="A comprehensive REST API for managing streams and stream types with full CRUD operations. Built with Laravel 12, featuring PostgreSQL database, interactive documentation, and a modern web interface."
  * )
  *
  * @OA\Server(
