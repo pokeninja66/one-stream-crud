@@ -244,15 +244,10 @@ return [
         'generate_always' => env('L5_SWAGGER_GENERATE_ALWAYS', false),
 
         /*
-         * Set this to `true` to generate a copy of documentation in yaml format
-         */
-        'generate_yaml_copy' => env('L5_SWAGGER_GENERATE_YAML_COPY', false),
-
-        /*
          * Edit to trust the proxy's ip address - needed for AWS Load Balancer
          * string[]
          */
-        'proxy' => false,
+        'proxy' => env('L5_SWAGGER_PROXY', false),
 
         /*
          * Configs plugin allows to fetch external configs instead of passing them to SwaggerUIBundle.
