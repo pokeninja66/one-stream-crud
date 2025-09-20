@@ -9,8 +9,13 @@ import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { SearchBar } from '@/components/ui/search-bar';
+import { DataGrid, DataGridColumn, DataGridAction } from '@/components/ui/data-grid';
+import { FormDialog, FormField } from '@/components/ui/form-dialog';
+import { DeleteDialog } from '@/components/ui/delete-dialog';
+import { StreamTypeCard } from '@/components/ui/stream-type-card';
 import { type BreadcrumbItem, type StreamType } from '@/types';
-import { Plus, Search, Edit, Trash2, Tag, ArrowLeft } from 'lucide-react';
+import { Plus, Tag, ArrowLeft } from 'lucide-react';
 
 const breadcrumbs: BreadcrumbItem[] = [
     { title: 'Dashboard', href: '/dashboard' },
@@ -25,6 +30,8 @@ export default function StreamTypesIndex() {
     const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
     const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
     const [editingType, setEditingType] = useState<StreamType | null>(null);
+    const [selectedType, setSelectedType] = useState<StreamType | null>(null);
+    const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
     const [formData, setFormData] = useState({ name: '' });
     const [formLoading, setFormLoading] = useState(false);
     const [formErrors, setFormErrors] = useState<Record<string, string>>({});
@@ -226,19 +233,13 @@ export default function StreamTypesIndex() {
                 </div>
 
                 {/* Search */}
-                <Card>
-                    <CardContent className="pt-6">
-                        <div className="relative">
-                            <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                            <Input
-                                placeholder="Search stream types..."
-                                value={searchTerm}
-                                onChange={(e) => setSearchTerm(e.target.value)}
-                                className="pl-10"
-                            />
-                        </div>
-                    </CardContent>
-                </Card>
+                <SearchBar
+                    value={searchTerm}
+                    onChange={setSearchTerm}
+                    placeholder="Search stream types..."
+                    label="Search Stream Types"
+                    description="Find stream types by name"
+                />
 
                 {/* Results */}
                 <div className="space-y-4">
@@ -261,115 +262,109 @@ export default function StreamTypesIndex() {
                                 </Card>
                             ))}
                         </div>
+                    ) : error ? (
+                        <Alert variant="destructive">
+                            <AlertDescription>{error}</AlertDescription>
+                        </Alert>
                     ) : filteredTypes.length === 0 ? (
-                        <Card>
-                            <CardContent className="flex flex-col items-center justify-center py-12">
-                                <div className="text-center">
-                                    <h3 className="text-lg font-semibold">No stream types found</h3>
-                                    <p className="text-muted-foreground">
-                                        {searchTerm ? 'Try adjusting your search term.' : 'Get started by creating your first stream type.'}
-                                    </p>
+                        <div className="text-center py-8">
+                            <Tag className="mx-auto h-12 w-12 text-muted-foreground" />
+                            <h3 className="mt-2 text-sm font-semibold">No stream types found</h3>
+                            <p className="mt-1 text-sm text-muted-foreground">
+                                {searchTerm ? 'Try adjusting your search term.' : 'Get started by creating your first stream type.'}
+                            </p>
+                            {!searchTerm && (
+                                <div className="mt-6">
+                                    <Button onClick={() => setIsCreateDialogOpen(true)}>
+                                        <Plus className="mr-2 h-4 w-4" />
+                                        Create Stream Type
+                                    </Button>
                                 </div>
-                            </CardContent>
-                        </Card>
+                            )}
+                        </div>
                     ) : (
                         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
                             {filteredTypes.map((type) => (
-                                <Card key={type.id} className="hover:shadow-md transition-shadow">
-                                    <CardHeader>
-                                        <div className="flex items-start justify-between">
-                                            <div className="space-y-1">
-                                                <CardTitle className="text-lg">{type.name}</CardTitle>
-                                            </div>
-                                        </div>
-                                    </CardHeader>
-                                    <CardContent>
-                                        <div className="flex gap-2">
-                                            <Button 
-                                                variant="outline" 
-                                                size="sm" 
-                                                className="flex-1"
-                                                onClick={() => openEditDialog(type)}
-                                            >
-                                                <Edit className="mr-1 h-3 w-3" />
-                                                Edit
-                                            </Button>
-                                            <Dialog>
-                                                <DialogTrigger asChild>
-                                                    <Button 
-                                                        variant="outline" 
-                                                        size="sm" 
-                                                        className="flex-1 text-destructive hover:text-destructive"
-                                                    >
-                                                        <Trash2 className="mr-1 h-3 w-3" />
-                                                        Delete
-                                                    </Button>
-                                                </DialogTrigger>
-                                                <DialogContent>
-                                                    <DialogHeader>
-                                                        <DialogTitle>Delete Stream Type</DialogTitle>
-                                                        <DialogDescription>
-                                                            Are you sure you want to delete "{type.name}"? This action cannot be undone.
-                                                        </DialogDescription>
-                                                    </DialogHeader>
-                                                    <DialogFooter>
-                                                        <Button variant="outline">Cancel</Button>
-                                                        <Button 
-                                                            variant="destructive"
-                                                            onClick={() => handleDelete(type.id)}
-                                                        >
-                                                            Delete
-                                                        </Button>
-                                                    </DialogFooter>
-                                                </DialogContent>
-                                            </Dialog>
-                                        </div>
-                                    </CardContent>
-                                </Card>
+                                <StreamTypeCard
+                                    key={type.id}
+                                    streamType={type}
+                                    onEdit={openEditDialog}
+                                    onDelete={(type) => {
+                                        setSelectedType(type);
+                                        setIsDeleteDialogOpen(true);
+                                    }}
+                                />
                             ))}
                         </div>
                     )}
                 </div>
 
+                {/* Create Dialog */}
+                <FormDialog
+                    open={isCreateDialogOpen}
+                    onOpenChange={setIsCreateDialogOpen}
+                    title="Create Stream Type"
+                    description="Add a new stream type to categorize your streams."
+                    fields={[
+                        {
+                            name: 'name',
+                            label: 'Name',
+                            type: 'text',
+                            required: true,
+                            placeholder: 'Enter stream type name'
+                        }
+                    ]}
+                    initialData={{ name: '' }}
+                    onSubmit={handleCreate}
+                    loading={formLoading}
+                    errors={formErrors}
+                    submitLabel="Create"
+                />
+
                 {/* Edit Dialog */}
-                <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-                    <DialogContent>
-                        <DialogHeader>
-                            <DialogTitle>Edit Stream Type</DialogTitle>
-                            <DialogDescription>
-                                Update the stream type information.
-                            </DialogDescription>
-                        </DialogHeader>
-                        <div className="space-y-4">
-                            {formErrors.general && (
-                                <Alert variant="destructive">
-                                    <AlertDescription>{formErrors.general}</AlertDescription>
-                                </Alert>
-                            )}
-                            <div className="space-y-2">
-                                <Label htmlFor="edit-name">Name</Label>
-                                <Input
-                                    id="edit-name"
-                                    value={formData.name}
-                                    onChange={(e) => setFormData({ name: e.target.value })}
-                                    placeholder="Enter stream type name"
-                                    className={formErrors.name ? 'border-destructive' : ''}
-                                />
-                                {formErrors.name && (
-                                    <p className="text-sm text-destructive">{formErrors.name}</p>
-                                )}
-                            </div>
-                        </div>
-                        <DialogFooter>
-                            <Button variant="outline" onClick={() => setIsEditDialogOpen(false)}>
-                                Cancel
-                            </Button>
-                            <Button onClick={handleEdit} disabled={formLoading}>
-                                {formLoading ? 'Updating...' : 'Update'}
-                            </Button>
-                        </DialogFooter>
-                    </DialogContent>
-                </Dialog>
+                <FormDialog
+                    open={isEditDialogOpen}
+                    onOpenChange={setIsEditDialogOpen}
+                    title="Edit Stream Type"
+                    description="Update the stream type information."
+                    fields={[
+                        {
+                            name: 'name',
+                            label: 'Name',
+                            type: 'text',
+                            required: true,
+                            placeholder: 'Enter stream type name'
+                        }
+                    ]}
+                    initialData={{ name: editingType?.name || '' }}
+                    onSubmit={handleEdit}
+                    loading={formLoading}
+                    errors={formErrors}
+                    submitLabel="Update"
+                />
+
+                {/* Delete Dialog */}
+                <DeleteDialog
+                    open={isDeleteDialogOpen}
+                    onOpenChange={setIsDeleteDialogOpen}
+                    title="Delete Stream Type"
+                    description="Are you sure you want to delete this stream type? This action cannot be undone."
+                    itemName={selectedType?.name || ''}
+                    onConfirm={async () => {
+                        if (!selectedType) return;
+                        try {
+                            const response = await fetch(`/api/stream-types/${selectedType.id}`, {
+                                method: 'DELETE',
+                            });
+                            if (response.ok) {
+                                fetchStreamTypes();
+                                setIsDeleteDialogOpen(false);
+                            }
+                        } catch (err) {
+                            console.error('Failed to delete stream type:', err);
+                        }
+                    }}
+                />
             </div>
         </AppLayout>
     );

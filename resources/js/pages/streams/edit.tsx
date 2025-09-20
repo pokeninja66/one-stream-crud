@@ -328,33 +328,38 @@ export default function StreamEdit({ streamId }: StreamEditProps) {
                                 )}
                             </div>
 
-                            <div className="flex gap-4">
+                            <div className="flex flex-col gap-3 sm:flex-row sm:gap-4">
                                 <Button
                                     type="submit"
                                     disabled={loading}
-                                    className="flex-1"
+                                    className="flex-1 order-1"
                                 >
                                     {loading && <LoaderCircle className="mr-2 h-4 w-4 animate-spin" />}
                                     <Save className="mr-2 h-4 w-4" />
                                     Update Stream
                                 </Button>
-                                <Button
-                                    type="button"
-                                    variant="outline"
-                                    onClick={() => setIsJsonModalOpen(true)}
-                                    disabled={loading}
-                                >
-                                    <Code className="mr-2 h-4 w-4" />
-                                    View JSON
-                                </Button>
-                                <Button
-                                    type="button"
-                                    variant="outline"
-                                    onClick={() => router.visit('/streams')}
-                                    disabled={loading}
-                                >
-                                    Cancel
-                                </Button>
+                                <div className="flex gap-3 sm:gap-4 order-2">
+                                    <Button
+                                        type="button"
+                                        variant="outline"
+                                        onClick={() => setIsJsonModalOpen(true)}
+                                        disabled={loading}
+                                        className="flex-1 sm:flex-none"
+                                    >
+                                        <Code className="mr-2 h-4 w-4" />
+                                        <span className="hidden sm:inline">View JSON</span>
+                                        <span className="sm:hidden">JSON</span>
+                                    </Button>
+                                    <Button
+                                        type="button"
+                                        variant="outline"
+                                        onClick={() => router.visit('/streams')}
+                                        disabled={loading}
+                                        className="flex-1 sm:flex-none"
+                                    >
+                                        Cancel
+                                    </Button>
+                                </div>
                             </div>
                         </form>
                     </CardContent>

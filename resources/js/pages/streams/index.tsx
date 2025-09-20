@@ -11,8 +11,13 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { JsonDataModal } from '@/components/ui/json-data-modal';
+import { SearchBar } from '@/components/ui/search-bar';
+import { DataGrid, DataGridColumn, DataGridAction } from '@/components/ui/data-grid';
+import { EmptyState } from '@/components/ui/empty-state';
+import { DeleteDialog } from '@/components/ui/delete-dialog';
+import { StreamCard } from '@/components/ui/stream-card';
 import { type BreadcrumbItem, type Stream, type StreamType, type StreamFilters, type StreamsResponse } from '@/types';
-import { Plus, Search, Filter, SortAsc, SortDesc, Edit, Trash2, Eye, Calendar, DollarSign, Tag, Code } from 'lucide-react';
+import { Plus, Search, Filter, SortAsc, SortDesc, Edit, Trash2, Eye, Calendar, DollarSign, Tag, Code, Database } from 'lucide-react';
 import { toast } from 'sonner';
 
 const breadcrumbs: BreadcrumbItem[] = [
@@ -46,6 +51,7 @@ export default function StreamsIndex() {
     });
     const [isJsonModalOpen, setIsJsonModalOpen] = useState(false);
     const [selectedStreamData, setSelectedStreamData] = useState<Stream | null>(null);
+    const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
 
     // Fetch streams
     const fetchStreams = async (page = 1) => {
@@ -165,16 +171,12 @@ export default function StreamsIndex() {
                         <div className="grid gap-4 md:grid-cols-3">
                             <div className="space-y-2">
                                 <Label htmlFor="search">Search</Label>
-                                <div className="relative">
-                                    <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                                    <Input
-                                        id="search"
-                                        placeholder="Search by title or description..."
-                                        value={filters.search || ''}
-                                        onChange={(e) => handleFilterChange('search', e.target.value)}
-                                        className="pl-10"
-                                    />
-                                </div>
+                                <SearchBar
+                                    value={filters.search || ''}
+                                    onChange={(value) => handleFilterChange('search', value)}
+                                    placeholder="Search by title or description..."
+                                    showCard={false}
+                                />
                             </div>
                             <div className="space-y-2">
                                 <Label htmlFor="type">Stream Type</Label>
@@ -275,126 +277,36 @@ export default function StreamsIndex() {
                             ))}
                         </div>
                     ) : streams.length === 0 ? (
-                        <Card>
-                            <CardContent className="flex flex-col items-center justify-center py-12">
-                                <div className="text-center">
-                                    <h3 className="text-lg font-semibold">No streams found</h3>
-                                    <p className="text-muted-foreground">
-                                        {Object.values(filters).some(v => v !== undefined && v !== '') 
-                                            ? 'Try adjusting your filters to see more results.'
-                                            : 'Get started by creating your first stream.'
-                                        }
-                                    </p>
-                                </div>
-                            </CardContent>
-                        </Card>
+                        <EmptyState
+                            icon={Database}
+                            title="No streams found"
+                            description={Object.values(filters).some(v => v !== undefined && v !== '') 
+                                ? 'Try adjusting your filters to see more results.'
+                                : 'Get started by creating your first stream.'}
+                            action={
+                                !Object.values(filters).some(v => v !== undefined && v !== '') ? {
+                                    label: 'Create Stream',
+                                    onClick: () => router.visit('/streams/create'),
+                                    icon: Plus
+                                } : undefined
+                            }
+                        />
                     ) : (
                         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
                             {streams.map((stream) => (
-                                <Card key={stream.id} className="hover:shadow-md transition-shadow">
-                                    <CardHeader>
-                                        <div className="flex items-start justify-between">
-                                            <div className="space-y-1">
-                                                <CardTitle className="text-lg line-clamp-2">{stream.title}</CardTitle>
-                                                {stream.type && (
-                                                    <Badge variant="secondary" className="w-fit">
-                                                        <Tag className="mr-1 h-3 w-3" />
-                                                        {stream.type.name}
-                                                    </Badge>
-                                                )}
-                                            </div>
-                                        </div>
-                                    </CardHeader>
-                                    <CardContent className="space-y-4">
-                                        {stream.description && (
-                                            <p className="text-sm text-muted-foreground line-clamp-3">
-                                                {stream.description}
-                                            </p>
-                                        )}
-                                        
-                                        <div className="flex items-center justify-between text-sm">
-                                            <div className="flex items-center gap-1 text-muted-foreground">
-                                                <DollarSign className="h-4 w-4" />
-                                                <span className="font-medium">{stream.tokens_price}</span>
-                                                <span>tokens</span>
-                                            </div>
-                                            <div className="flex items-center gap-1 text-muted-foreground">
-                                                <Calendar className="h-4 w-4" />
-                                                <span>{formatDate(stream.date_expiration)}</span>
-                                            </div>
-                                        </div>
-
-                                        <div className="flex flex-wrap gap-2">
-                                            <Button 
-                                                variant="outline" 
-                                                size="sm" 
-                                                className="flex-1 min-w-0"
-                                                onClick={() => {
-                                                    setSelectedStreamData(stream);
-                                                    setIsJsonModalOpen(true);
-                                                }}
-                                            >
-                                                <Eye className="mr-1 h-3 w-3" />
-                                                <span className="hidden sm:inline">View</span>
-                                            </Button>
-                                            <Button 
-                                                variant="outline" 
-                                                size="sm" 
-                                                className="flex-1 min-w-0"
-                                                onClick={() => router.visit(`/streams/${stream.id}/edit`)}
-                                            >
-                                                <Edit className="mr-1 h-3 w-3" />
-                                                <span className="hidden sm:inline">Edit</span>
-                                            </Button>
-
-                                            <Dialog>
-                                                <DialogTrigger asChild>
-                                                    <Button 
-                                                        variant="outline" 
-                                                        size="sm" 
-                                                        className="flex-1 min-w-0 text-destructive hover:text-destructive"
-                                                    >
-                                                        <Trash2 className="mr-1 h-3 w-3" />
-                                                        <span className="hidden sm:inline">Delete</span>
-                                                    </Button>
-                                                </DialogTrigger>
-                                                <DialogContent>
-                                                    <DialogHeader>
-                                                        <DialogTitle>Delete Stream</DialogTitle>
-                                                        <DialogDescription>
-                                                            Are you sure you want to delete "{stream.title}"? This action cannot be undone.
-                                                        </DialogDescription>
-                                                    </DialogHeader>
-                                                    <DialogFooter>
-                                                        <Button variant="outline">Cancel</Button>
-                                                        <Button 
-                                                            variant="destructive"
-                                                            onClick={async () => {
-                                                                try {
-                                                                    const response = await fetch(`/api/streams/${stream.id}`, {
-                                                                        method: 'DELETE',
-                                                                    });
-                                                                    if (response.ok) {
-                                                                        toast.success(`Stream "${stream.title}" deleted successfully`);
-                                                                        // Refresh the streams list
-                                                                        fetchStreams(pagination.current_page);
-                                                                    } else {
-                                                                        toast.error('Failed to delete stream');
-                                                                    }
-                                                                } catch (err) {
-                                                                    console.error('Failed to delete stream:', err);
-                                                                    toast.error('Failed to delete stream');
-                                                                }
-                                                            }}
-                                                        >
-                                                            Delete
-                                                        </Button>
-                                                    </DialogFooter>
-                                                </DialogContent>
-                                            </Dialog>
-                                        </div>
-                                    </CardContent>
-                                </Card>
+                                <StreamCard
+                                    key={stream.id}
+                                    stream={stream}
+                                    onView={(stream) => {
+                                        setSelectedStreamData(stream);
+                                        setIsJsonModalOpen(true);
+                                    }}
+                                    onEdit={(stream) => router.visit(`/streams/${stream.id}/edit`)}
+                                    onDelete={(stream) => {
+                                        setSelectedStreamData(stream);
+                                        setIsDeleteDialogOpen(true);
+                                    }}
+                                />
                             ))}
                         </div>
                     )}
@@ -432,6 +344,34 @@ export default function StreamsIndex() {
                     data={selectedStreamData}
                     title="Stream Raw Data"
                     description="View the raw JSON data for this stream. You can copy this data to use elsewhere."
+                />
+
+                {/* Delete Dialog */}
+                <DeleteDialog
+                    open={isDeleteDialogOpen}
+                    onOpenChange={setIsDeleteDialogOpen}
+                    title="Delete Stream"
+                    description="Are you sure you want to delete this stream? This action cannot be undone."
+                    itemName={selectedStreamData?.title || ''}
+                    onConfirm={async () => {
+                        if (!selectedStreamData) return;
+                        // Should probably be moved to a separate function.
+                        try {
+                            const response = await fetch(`/api/streams/${selectedStreamData.id}`, {
+                                method: 'DELETE',
+                            });
+                            if (response.ok) {
+                                toast.success(`Stream "${selectedStreamData.title}" deleted successfully`);
+                                fetchStreams(pagination.current_page);
+                                setIsDeleteDialogOpen(false);
+                            } else {
+                                toast.error('Failed to delete stream');
+                            }
+                        } catch (err) {
+                            console.error('Failed to delete stream:', err);
+                            toast.error('Failed to delete stream');
+                        }
+                    }}
                 />
             </div>
         </AppLayout>

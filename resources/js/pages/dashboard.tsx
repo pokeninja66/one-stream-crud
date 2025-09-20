@@ -7,11 +7,17 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { StatsCard } from '@/components/ui/stats-card';
+import { FormDialog, FormField } from '@/components/ui/form-dialog';
+import { DeleteDialog } from '@/components/ui/delete-dialog';
+import { EmptyState } from '@/components/ui/empty-state';
+import { StreamCard } from '@/components/ui/stream-card';
+import { JsonDataModal } from '@/components/ui/json-data-modal';
 import AppLayout from '@/layouts/app-layout';
 import { dashboard } from '@/routes';
 import { type BreadcrumbItem, type Stream, type StreamType } from '@/types';
 import { Head, router } from '@inertiajs/react';
-import { Calendar, Database, DollarSign, Edit, ExternalLink, LoaderCircle, Plus, Tag, Trash2, Users, Zap } from 'lucide-react';
+import { Database, LoaderCircle, Plus, Rss, Tag, Zap } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
 const breadcrumbs: BreadcrumbItem[] = [
@@ -28,6 +34,8 @@ export default function Dashboard() {
     const [error, setError] = useState<string | null>(null);
     const [isCreateStreamDialogOpen, setIsCreateStreamDialogOpen] = useState(false);
     const [isCreateTypeDialogOpen, setIsCreateTypeDialogOpen] = useState(false);
+    const [isJsonModalOpen, setIsJsonModalOpen] = useState(false);
+    const [selectedStreamData, setSelectedStreamData] = useState<Stream | null>(null);
     const [streamFormData, setStreamFormData] = useState({
         title: '',
         description: '',
@@ -168,15 +176,6 @@ export default function Dashboard() {
         }
     };
 
-    const formatDate = (dateString: string) => {
-        return new Date(dateString).toLocaleDateString('en-US', {
-            year: 'numeric',
-            month: 'short',
-            day: 'numeric',
-            hour: '2-digit',
-            minute: '2-digit',
-        });
-    };
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
@@ -190,38 +189,26 @@ export default function Dashboard() {
 
                 {/* Quick Stats */}
                 <div className="grid gap-4 md:grid-cols-1 lg:grid-cols-3">
-                    <Card>
-                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                            <CardTitle className="text-sm font-medium">Total Streams</CardTitle>
-                            <Database className="h-4 w-4 text-muted-foreground" />
-                        </CardHeader>
-                        <CardContent>
-                            <div className="text-2xl font-bold">{loading ? '...' : streams.length}</div>
-                            <p className="text-xs text-muted-foreground">
-                                {loading ? 'Loading...' : streams.length === 0 ? 'No streams created yet' : 'Active streams'}
-                            </p>
-                        </CardContent>
-                    </Card>
-                    <Card>
-                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                            <CardTitle className="text-sm font-medium">Stream Types</CardTitle>
-                            <Zap className="h-4 w-4 text-muted-foreground" />
-                        </CardHeader>
-                        <CardContent>
-                            <div className="text-2xl font-bold">{loading ? '...' : streamTypes.length}</div>
-                            <p className="text-xs text-muted-foreground">{loading ? 'Loading...' : 'Available categories'}</p>
-                        </CardContent>
-                    </Card>
-                    <Card>
-                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                            <CardTitle className="text-sm font-medium">API Endpoints</CardTitle>
-                            <Users className="h-4 w-4 text-muted-foreground" />
-                        </CardHeader>
-                        <CardContent>
-                            <div className="text-2xl font-bold">9</div>
-                            <p className="text-xs text-muted-foreground">Full CRUD operations</p>
-                        </CardContent>
-                    </Card>
+                    <StatsCard
+                        title="Total Streams"
+                        value={streams.length}
+                        description={loading ? 'Loading...' : streams.length === 0 ? 'No streams created yet' : 'Active streams'}
+                        icon={Database}
+                        loading={loading}
+                    />
+                    <StatsCard
+                        title="Stream Types"
+                        value={streamTypes.length}
+                        description={loading ? 'Loading...' : 'Available categories'}
+                        icon={Zap}
+                        loading={loading}
+                    />
+                    <StatsCard
+                        title="API Endpoints"
+                        value="9"
+                        description="Full CRUD operations"
+                        icon={Rss}
+                    />
                 </div>
 
                 {/* Quick Actions */}
@@ -414,74 +401,29 @@ export default function Dashboard() {
                                 ))}
                             </div>
                         ) : streams.length === 0 ? (
-                            <div className="py-8 text-center">
-                                <Database className="mx-auto h-12 w-12 text-muted-foreground" />
-                                <h3 className="mt-2 text-sm font-semibold">No streams</h3>
-                                <p className="mt-1 text-sm text-muted-foreground">Get started by creating a new stream.</p>
-                                <div className="mt-6">
-                                    <Button onClick={() => setIsCreateStreamDialogOpen(true)}>
-                                        <Plus className="mr-2 h-4 w-4" />
-                                        Create Stream
-                                    </Button>
-                                </div>
-                            </div>
+                            <EmptyState
+                                icon={Database}
+                                title="No streams"
+                                description="Get started by creating a new stream."
+                                action={{
+                                    label: "Create Stream",
+                                    onClick: () => setIsCreateStreamDialogOpen(true),
+                                    icon: Plus
+                                }}
+                            />
                         ) : (
                             <div className="space-y-4">
                                 {streams.slice(0, 5).map((stream) => (
-                                    <div key={stream.id} className="rounded-lg border p-4">
-                                        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-                                            <div className="flex min-w-0 flex-1 items-center space-x-4">
-                                                <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-lg bg-primary/10">
-                                                    <Database className="h-6 w-6 text-primary" />
-                                                </div>
-                                                <div className="min-w-0 flex-1">
-                                                    <h4 className="truncate font-medium">{stream.title}</h4>
-                                                    <div className="flex flex-col gap-2 text-sm text-muted-foreground sm:flex-row sm:items-center sm:gap-4">
-                                                        <span className="flex items-center gap-1">
-                                                            <DollarSign className="h-3 w-3" />
-                                                            {stream.tokens_price} tokens
-                                                        </span>
-                                                        <span className="flex items-center gap-1">
-                                                            <Calendar className="h-3 w-3" />
-                                                            {formatDate(stream.date_expiration)}
-                                                        </span>
-                                                        {stream.type && (
-                                                            <Badge variant="secondary" className="w-fit text-xs">
-                                                                <Tag className="mr-1 h-3 w-3" />
-                                                                {stream.type.name}
-                                                            </Badge>
-                                                        )}
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            <div className="flex flex-shrink-0 gap-2 mx-auto">
-                                                <Button variant="outline" size="sm" onClick={() => router.visit(`/streams/${stream.id}/edit`)}>
-                                                    <Edit className="h-3 w-3" />
-                                                </Button>
-                                                <Dialog>
-                                                    <DialogTrigger asChild>
-                                                        <Button variant="outline" size="sm" className="text-destructive hover:text-destructive">
-                                                            <Trash2 className="h-3 w-3" />
-                                                        </Button>
-                                                    </DialogTrigger>
-                                                    <DialogContent>
-                                                        <DialogHeader>
-                                                            <DialogTitle>Delete Stream</DialogTitle>
-                                                            <DialogDescription>
-                                                                Are you sure you want to delete "{stream.title}"? This action cannot be undone.
-                                                            </DialogDescription>
-                                                        </DialogHeader>
-                                                        <DialogFooter>
-                                                            <Button variant="outline">Cancel</Button>
-                                                            <Button variant="destructive" onClick={() => handleDeleteStream(stream.id)}>
-                                                                Delete
-                                                            </Button>
-                                                        </DialogFooter>
-                                                    </DialogContent>
-                                                </Dialog>
-                                            </div>
-                                        </div>
-                                    </div>
+                                    <StreamCard
+                                        key={stream.id}
+                                        stream={stream}
+                                        onView={(stream) => {
+                                            setSelectedStreamData(stream);
+                                            setIsJsonModalOpen(true);
+                                        }}
+                                        onEdit={(stream) => router.visit(`/streams/${stream.id}/edit`)}
+                                        onDelete={(stream) => handleDeleteStream(stream.id)}
+                                    />
                                 ))}
                                 {streams.length > 5 && (
                                     <div className="pt-4 text-center">
@@ -495,27 +437,14 @@ export default function Dashboard() {
                     </CardContent>
                 </Card>
 
-                {/* API Documentation */}
-                <Card>
-                    <CardHeader>
-                        <CardTitle>API Documentation</CardTitle>
-                        <CardDescription>Explore our comprehensive API documentation with Swagger UI.</CardDescription>
-                    </CardHeader>
-                    <CardContent className="space-y-4">
-                        <div className="flex flex-wrap gap-2">
-                            <Badge variant="outline">REST API</Badge>
-                            <Badge variant="outline">OpenAPI 3.0</Badge>
-                            <Badge variant="outline">Swagger UI</Badge>
-                            <Badge variant="outline">Interactive</Badge>
-                        </div>
-                        <Button asChild variant="outline" className="w-full">
-                            <a href="/api/documentation" target="_blank" rel="noopener noreferrer">
-                                <ExternalLink className="mr-2 h-4 w-4" />
-                                View Documentation
-                            </a>
-                        </Button>
-                    </CardContent>
-                </Card>
+                {/* JSON Data Modal */}
+                <JsonDataModal
+                    open={isJsonModalOpen}
+                    onOpenChange={setIsJsonModalOpen}
+                    data={selectedStreamData}
+                    title="Stream Raw Data"
+                    description="View the raw JSON data for this stream. You can copy this data to use elsewhere."
+                />
             </div>
         </AppLayout>
     );

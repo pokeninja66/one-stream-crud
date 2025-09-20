@@ -9,8 +9,13 @@ import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { SearchBar } from '@/components/ui/search-bar';
+import { DataTable, Column } from '@/components/ui/data-table';
+import { FormDialog, FormField } from '@/components/ui/form-dialog';
+import { DeleteDialog } from '@/components/ui/delete-dialog';
+import { UserCard } from '@/components/ui/user-card';
 import { type BreadcrumbItem } from '@/types';
-import { ArrowLeft, Plus, Search, Edit, Trash2, User, Mail, Calendar, Shield, Eye } from 'lucide-react';
+import { ArrowLeft, Plus, User } from 'lucide-react';
 import { toast } from 'sonner';
 
 interface User {
@@ -35,6 +40,8 @@ export default function UsersIndex() {
     const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
     const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
     const [editingUser, setEditingUser] = useState<User | null>(null);
+    const [selectedUser, setSelectedUser] = useState<User | null>(null);
+    const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
     const [formData, setFormData] = useState({
         name: '',
         email: '',
@@ -205,15 +212,6 @@ export default function UsersIndex() {
         user.email.toLowerCase().includes(searchTerm.toLowerCase())
     );
 
-    const formatDate = (dateString: string) => {
-        return new Date(dateString).toLocaleDateString('en-US', {
-            year: 'numeric',
-            month: 'short',
-            day: 'numeric',
-            hour: '2-digit',
-            minute: '2-digit',
-        });
-    };
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
@@ -308,201 +306,165 @@ export default function UsersIndex() {
                 </div>
 
                 {/* Search */}
-                <Card>
-                    <CardHeader>
-                        <CardTitle className="flex items-center gap-2">
-                            <Search className="h-5 w-5" />
-                            Search Users
-                        </CardTitle>
-                        <CardDescription>
-                            Find users by name or email address
-                        </CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                        <div className="relative">
-                            <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                            <Input
-                                placeholder="Search by name or email..."
-                                value={searchTerm}
-                                onChange={(e) => setSearchTerm(e.target.value)}
-                                className="pl-10"
-                            />
-                        </div>
-                    </CardContent>
-                </Card>
+                <SearchBar
+                    value={searchTerm}
+                    onChange={setSearchTerm}
+                    placeholder="Search by name or email..."
+                    label="Search Users"
+                    description="Find users by name or email address"
+                />
 
                 {/* Users List */}
-                <Card>
-                    <CardHeader>
-                        <CardTitle>Users ({filteredUsers.length})</CardTitle>
-                        <CardDescription>
-                            Manage user accounts and view their details
-                        </CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                        {error && (
-                            <Alert variant="destructive">
-                                <AlertDescription>{error}</AlertDescription>
-                            </Alert>
-                        )}
+                <div className="space-y-4">
+                    {loading ? (
+                        <div className="space-y-4">
+                            {Array.from({ length: 5 }).map((_, i) => (
+                                <div key={i} className="flex items-center space-x-4">
+                                    <Skeleton className="h-12 w-12 rounded-full" />
+                                    <div className="space-y-2 flex-1">
+                                        <Skeleton className="h-4 w-3/4" />
+                                        <Skeleton className="h-3 w-1/2" />
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    ) : error ? (
+                        <Alert variant="destructive">
+                            <AlertDescription>{error}</AlertDescription>
+                        </Alert>
+                    ) : filteredUsers.length === 0 ? (
+                        <div className="text-center py-8">
+                            <User className="mx-auto h-12 w-12 text-muted-foreground" />
+                            <h3 className="mt-2 text-sm font-semibold">No users found</h3>
+                            <p className="mt-1 text-sm text-muted-foreground">
+                                {searchTerm ? 'Try adjusting your search terms.' : 'Get started by creating a new user.'}
+                            </p>
+                            {!searchTerm && (
+                                <div className="mt-6">
+                                    <Button onClick={() => setIsCreateDialogOpen(true)}>
+                                        <Plus className="mr-2 h-4 w-4" />
+                                        Create User
+                                    </Button>
+                                </div>
+                            )}
+                        </div>
+                    ) : (
+                        filteredUsers.map((user) => (
+                            <UserCard
+                                key={user.id}
+                                user={user}
+                                onEdit={openEditDialog}
+                                onDelete={(user) => {
+                                    setSelectedUser(user);
+                                    setIsDeleteDialogOpen(true);
+                                }}
+                            />
+                        ))
+                    )}
+                </div>
 
-                        {loading ? (
-                            <div className="space-y-4">
-                                {Array.from({ length: 5 }).map((_, i) => (
-                                    <div key={i} className="flex items-center space-x-4">
-                                        <Skeleton className="h-12 w-12 rounded-full" />
-                                        <div className="space-y-2 flex-1">
-                                            <Skeleton className="h-4 w-3/4" />
-                                            <Skeleton className="h-3 w-1/2" />
-                                        </div>
-                                    </div>
-                                ))}
-                            </div>
-                        ) : filteredUsers.length === 0 ? (
-                            <div className="text-center py-8">
-                                <User className="mx-auto h-12 w-12 text-muted-foreground" />
-                                <h3 className="mt-2 text-sm font-semibold">No users found</h3>
-                                <p className="mt-1 text-sm text-muted-foreground">
-                                    {searchTerm ? 'Try adjusting your search terms.' : 'Get started by creating a new user.'}
-                                </p>
-                                {!searchTerm && (
-                                    <div className="mt-6">
-                                        <Button onClick={() => setIsCreateDialogOpen(true)}>
-                                            <Plus className="mr-2 h-4 w-4" />
-                                            Create User
-                                        </Button>
-                                    </div>
-                                )}
-                            </div>
-                        ) : (
-                            <div className="space-y-4">
-                                {filteredUsers.map((user) => (
-                                    <div key={user.id} className="rounded-lg border p-4">
-                                        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-                                            <div className="flex min-w-0 flex-1 items-center space-x-4">
-                                                <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-primary/10">
-                                                    <User className="h-6 w-6 text-primary" />
-                                                </div>
-                                                <div className="min-w-0 flex-1">
-                                                    <h4 className="truncate font-medium">{user.name}</h4>
-                                                    <div className="flex flex-col gap-2 text-sm text-muted-foreground sm:flex-row sm:items-center sm:gap-4">
-                                                        <span className="flex items-center gap-1">
-                                                            <Mail className="h-3 w-3" />
-                                                            {user.email}
-                                                        </span>
-                                                        <span className="flex items-center gap-1">
-                                                            <Calendar className="h-3 w-3" />
-                                                            {formatDate(user.created_at)}
-                                                        </span>
-                                                        {user.email_verified_at && (
-                                                            <Badge variant="secondary" className="w-fit text-xs">
-                                                                <Shield className="mr-1 h-3 w-3" />
-                                                                Verified
-                                                            </Badge>
-                                                        )}
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            <div className="flex flex-shrink-0 gap-2">
-                                                <Button
-                                                    variant="outline"
-                                                    size="sm"
-                                                    onClick={() => openEditDialog(user)}
-                                                >
-                                                    <Edit className="h-3 w-3" />
-                                                </Button>
-                                                <Dialog>
-                                                    <DialogTrigger asChild>
-                                                        <Button variant="outline" size="sm" className="text-destructive hover:text-destructive">
-                                                            <Trash2 className="h-3 w-3" />
-                                                        </Button>
-                                                    </DialogTrigger>
-                                                    <DialogContent>
-                                                        <DialogHeader>
-                                                            <DialogTitle>Delete User</DialogTitle>
-                                                            <DialogDescription>
-                                                                Are you sure you want to delete "{user.name}"? This action cannot be undone.
-                                                            </DialogDescription>
-                                                        </DialogHeader>
-                                                        <DialogFooter>
-                                                            <Button variant="outline">Cancel</Button>
-                                                            <Button variant="destructive" onClick={() => handleDelete(user.id)}>
-                                                                Delete
-                                                            </Button>
-                                                        </DialogFooter>
-                                                    </DialogContent>
-                                                </Dialog>
-                                            </div>
-                                        </div>
-                                    </div>
-                                ))}
-                            </div>
-                        )}
-                    </CardContent>
-                </Card>
+                {/* Create Dialog */}
+                <FormDialog
+                    open={isCreateDialogOpen}
+                    onOpenChange={setIsCreateDialogOpen}
+                    title="Create User"
+                    description="Add a new user to the system."
+                    fields={[
+                        {
+                            name: 'name',
+                            label: 'Name',
+                            type: 'text',
+                            required: true,
+                            placeholder: 'Enter user name'
+                        },
+                        {
+                            name: 'email',
+                            label: 'Email',
+                            type: 'email',
+                            required: true,
+                            placeholder: 'Enter user email'
+                        },
+                        {
+                            name: 'password',
+                            label: 'Password',
+                            type: 'password',
+                            required: true,
+                            placeholder: 'Enter password'
+                        }
+                    ]}
+                    initialData={{ name: '', email: '', password: '' }}
+                    onSubmit={handleCreate}
+                    loading={formLoading}
+                    errors={formErrors}
+                    submitLabel="Create User"
+                />
 
                 {/* Edit Dialog */}
-                <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-                    <DialogContent>
-                        <DialogHeader>
-                            <DialogTitle>Edit User</DialogTitle>
-                            <DialogDescription>
-                                Update user information.
-                            </DialogDescription>
-                        </DialogHeader>
-                        <div className="space-y-4">
-                            {formErrors.general && (
-                                <Alert variant="destructive">
-                                    <AlertDescription>{formErrors.general}</AlertDescription>
-                                </Alert>
-                            )}
-                            <div className="space-y-2">
-                                <Label htmlFor="edit-name">Name *</Label>
-                                <Input
-                                    id="edit-name"
-                                    value={formData.name}
-                                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                                    placeholder="Enter user name"
-                                    className={formErrors.name ? 'border-destructive' : ''}
-                                />
-                                {formErrors.name && <p className="text-sm text-destructive">{formErrors.name}</p>}
-                            </div>
-                            <div className="space-y-2">
-                                <Label htmlFor="edit-email">Email *</Label>
-                                <Input
-                                    id="edit-email"
-                                    type="email"
-                                    value={formData.email}
-                                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                                    placeholder="Enter user email"
-                                    className={formErrors.email ? 'border-destructive' : ''}
-                                />
-                                {formErrors.email && <p className="text-sm text-destructive">{formErrors.email}</p>}
-                            </div>
-                            <div className="space-y-2">
-                                <Label htmlFor="edit-password">New Password (optional)</Label>
-                                <Input
-                                    id="edit-password"
-                                    type="password"
-                                    value={formData.password}
-                                    onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                                    placeholder="Enter new password (leave blank to keep current)"
-                                    className={formErrors.password ? 'border-destructive' : ''}
-                                />
-                                {formErrors.password && <p className="text-sm text-destructive">{formErrors.password}</p>}
-                            </div>
-                        </div>
-                        <DialogFooter>
-                            <Button variant="outline" onClick={() => setIsEditDialogOpen(false)}>
-                                Cancel
-                            </Button>
-                            <Button onClick={handleEdit} disabled={formLoading}>
-                                {formLoading && <div className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />}
-                                Update User
-                            </Button>
-                        </DialogFooter>
-                    </DialogContent>
-                </Dialog>
+                <FormDialog
+                    open={isEditDialogOpen}
+                    onOpenChange={setIsEditDialogOpen}
+                    title="Edit User"
+                    description="Update user information."
+                    fields={[
+                        {
+                            name: 'name',
+                            label: 'Name',
+                            type: 'text',
+                            required: true,
+                            placeholder: 'Enter user name'
+                        },
+                        {
+                            name: 'email',
+                            label: 'Email',
+                            type: 'email',
+                            required: true,
+                            placeholder: 'Enter user email'
+                        },
+                        {
+                            name: 'password',
+                            label: 'New Password (optional)',
+                            type: 'password',
+                            required: false,
+                            placeholder: 'Enter new password (leave blank to keep current)'
+                        }
+                    ]}
+                    initialData={{ 
+                        name: editingUser?.name || '', 
+                        email: editingUser?.email || '', 
+                        password: '' 
+                    }}
+                    onSubmit={handleEdit}
+                    loading={formLoading}
+                    errors={formErrors}
+                    submitLabel="Update User"
+                />
+
+                {/* Delete Dialog */}
+                <DeleteDialog
+                    open={isDeleteDialogOpen}
+                    onOpenChange={setIsDeleteDialogOpen}
+                    title="Delete User"
+                    description="Are you sure you want to delete this user? This action cannot be undone."
+                    itemName={selectedUser?.name || ''}
+                    onConfirm={async () => {
+                        if (!selectedUser) return;
+                        try {
+                            const response = await fetch(`/api/users/${selectedUser.id}`, {
+                                method: 'DELETE',
+                            });
+                            if (!response.ok) {
+                                toast.error('Failed to delete user');
+                                return;
+                            }
+                            fetchUsers();
+                            setIsDeleteDialogOpen(false);
+                            toast.success('User deleted successfully!');
+                        } catch (err) {
+                            console.error('Failed to delete user:', err);
+                            toast.error('Failed to delete user');
+                        }
+                    }}
+                />
             </div>
         </AppLayout>
     );
