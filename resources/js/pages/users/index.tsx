@@ -1,17 +1,14 @@
 import { useState, useEffect } from 'react';
 import { Head, router } from '@inertiajs/react';
 import AppLayout from '@/layouts/app-layout';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { SearchBar } from '@/components/ui/search-bar';
-import { DataTable, Column } from '@/components/ui/data-table';
-import { FormDialog, FormField } from '@/components/ui/form-dialog';
+import { FormDialog } from '@/components/ui/form-dialog';
 import { DeleteDialog } from '@/components/ui/delete-dialog';
 import { UserCard } from '@/components/ui/user-card';
 import { type BreadcrumbItem } from '@/types';
@@ -120,6 +117,7 @@ export default function UsersIndex() {
             const errorMessage = 'An error occurred while creating the user';
             setFormErrors({ general: errorMessage });
             toast.error(errorMessage);
+            console.error('Failed to create user:', err);
         } finally {
             setFormLoading(false);
         }
@@ -173,29 +171,30 @@ export default function UsersIndex() {
             const errorMessage = 'An error occurred while updating the user';
             setFormErrors({ general: errorMessage });
             toast.error(errorMessage);
+            console.error('Failed to update user:', err);
         } finally {
             setFormLoading(false);
         }
     };
 
-    const handleDelete = async (userId: string) => {
-        try {
-            const response = await fetch(`/api/users/${userId}`, {
-                method: 'DELETE',
-            });
+    // const handleDelete = async (userId: string) => {
+    //     try {
+    //         const response = await fetch(`/api/users/${userId}`, {
+    //             method: 'DELETE',
+    //         });
 
-            if (!response.ok) {
-                toast.error('Failed to delete user');
-                return;
-            }
+    //         if (!response.ok) {
+    //             toast.error('Failed to delete user');
+    //             return;
+    //         }
 
-            fetchUsers();
-            toast.success('User deleted successfully!');
-        } catch (err) {
-            console.error('Failed to delete user:', err);
-            toast.error('Failed to delete user');
-        }
-    };
+    //         fetchUsers();
+    //         toast.success('User deleted successfully!');
+    //     } catch (err) {
+    //         console.error('Failed to delete user:', err);
+    //         toast.error('Failed to delete user');
+    //     }
+    // };
 
     const openEditDialog = (user: User) => {
         setEditingUser(user);
@@ -205,6 +204,12 @@ export default function UsersIndex() {
             password: '',
         });
         setIsEditDialogOpen(true);
+    };
+
+    const openCreateDialog = () => {
+        setFormData({ name: '', email: '', password: '' });
+        setFormErrors({});
+        setIsCreateDialogOpen(true);
     };
 
     const filteredUsers = users.filter(user =>
@@ -236,73 +241,10 @@ export default function UsersIndex() {
                             </p>
                         </div>
                     </div>
-                    <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
-                        <DialogTrigger asChild>
-                            <Button className="self-start sm:self-auto">
-                                <Plus className="mr-2 h-4 w-4" />
-                                Create User
-                            </Button>
-                        </DialogTrigger>
-                        <DialogContent>
-                            <DialogHeader>
-                                <DialogTitle>Create User</DialogTitle>
-                                <DialogDescription>
-                                    Add a new user to the system.
-                                </DialogDescription>
-                            </DialogHeader>
-                            <div className="space-y-4">
-                                {formErrors.general && (
-                                    <Alert variant="destructive">
-                                        <AlertDescription>{formErrors.general}</AlertDescription>
-                                    </Alert>
-                                )}
-                                <div className="space-y-2">
-                                    <Label htmlFor="name">Name *</Label>
-                                    <Input
-                                        id="name"
-                                        value={formData.name}
-                                        onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                                        placeholder="Enter user name"
-                                        className={formErrors.name ? 'border-destructive' : ''}
-                                    />
-                                    {formErrors.name && <p className="text-sm text-destructive">{formErrors.name}</p>}
-                                </div>
-                                <div className="space-y-2">
-                                    <Label htmlFor="email">Email *</Label>
-                                    <Input
-                                        id="email"
-                                        type="email"
-                                        value={formData.email}
-                                        onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                                        placeholder="Enter user email"
-                                        className={formErrors.email ? 'border-destructive' : ''}
-                                    />
-                                    {formErrors.email && <p className="text-sm text-destructive">{formErrors.email}</p>}
-                                </div>
-                                <div className="space-y-2">
-                                    <Label htmlFor="password">Password *</Label>
-                                    <Input
-                                        id="password"
-                                        type="password"
-                                        value={formData.password}
-                                        onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                                        placeholder="Enter password"
-                                        className={formErrors.password ? 'border-destructive' : ''}
-                                    />
-                                    {formErrors.password && <p className="text-sm text-destructive">{formErrors.password}</p>}
-                                </div>
-                            </div>
-                            <DialogFooter>
-                                <Button variant="outline" onClick={() => setIsCreateDialogOpen(false)}>
-                                    Cancel
-                                </Button>
-                                <Button onClick={handleCreate} disabled={formLoading}>
-                                    {formLoading && <div className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />}
-                                    Create User
-                                </Button>
-                            </DialogFooter>
-                        </DialogContent>
-                    </Dialog>
+                    <Button onClick={openCreateDialog} className="self-start sm:self-auto">
+                        <Plus className="mr-2 h-4 w-4" />
+                        Create User
+                    </Button>
                 </div>
 
                 {/* Search */}
@@ -341,7 +283,7 @@ export default function UsersIndex() {
                             </p>
                             {!searchTerm && (
                                 <div className="mt-6">
-                                    <Button onClick={() => setIsCreateDialogOpen(true)}>
+                                    <Button onClick={openCreateDialog}>
                                         <Plus className="mr-2 h-4 w-4" />
                                         Create User
                                     </Button>
@@ -364,80 +306,130 @@ export default function UsersIndex() {
                 </div>
 
                 {/* Create Dialog */}
-                <FormDialog
-                    open={isCreateDialogOpen}
-                    onOpenChange={setIsCreateDialogOpen}
-                    title="Create User"
-                    description="Add a new user to the system."
-                    fields={[
-                        {
-                            name: 'name',
-                            label: 'Name',
-                            type: 'text',
-                            required: true,
-                            placeholder: 'Enter user name'
-                        },
-                        {
-                            name: 'email',
-                            label: 'Email',
-                            type: 'email',
-                            required: true,
-                            placeholder: 'Enter user email'
-                        },
-                        {
-                            name: 'password',
-                            label: 'Password',
-                            type: 'password',
-                            required: true,
-                            placeholder: 'Enter password'
-                        }
-                    ]}
-                    initialData={{ name: '', email: '', password: '' }}
-                    onSubmit={handleCreate}
-                    loading={formLoading}
-                    errors={formErrors}
-                    submitLabel="Create User"
-                />
+                <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
+                    <DialogContent>
+                        <DialogHeader>
+                            <DialogTitle>Create User</DialogTitle>
+                            <DialogDescription>
+                                Add a new user to the system.
+                            </DialogDescription>
+                        </DialogHeader>
+                        <div className="space-y-4">
+                            {formErrors.general && (
+                                <Alert variant="destructive">
+                                    <AlertDescription>{formErrors.general}</AlertDescription>
+                                </Alert>
+                            )}
+                            <div className="space-y-2">
+                                <Label htmlFor="name">Name *</Label>
+                                <Input
+                                    id="name"
+                                    value={formData.name}
+                                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                                    placeholder="Enter user name"
+                                    className={formErrors.name ? 'border-destructive' : ''}
+                                />
+                                {formErrors.name && <p className="text-sm text-destructive">{formErrors.name}</p>}
+                            </div>
+                            <div className="space-y-2">
+                                <Label htmlFor="email">Email *</Label>
+                                <Input
+                                    id="email"
+                                    type="email"
+                                    value={formData.email}
+                                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                                    placeholder="Enter user email"
+                                    className={formErrors.email ? 'border-destructive' : ''}
+                                />
+                                {formErrors.email && <p className="text-sm text-destructive">{formErrors.email}</p>}
+                            </div>
+                            <div className="space-y-2">
+                                <Label htmlFor="password">Password *</Label>
+                                <Input
+                                    id="password"
+                                    type="password"
+                                    value={formData.password}
+                                    onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                                    placeholder="Enter password"
+                                    className={formErrors.password ? 'border-destructive' : ''}
+                                />
+                                {formErrors.password && <p className="text-sm text-destructive">{formErrors.password}</p>}
+                            </div>
+                        </div>
+                        <DialogFooter>
+                            <Button variant="outline" onClick={() => setIsCreateDialogOpen(false)}>
+                                Cancel
+                            </Button>
+                            <Button onClick={handleCreate} disabled={formLoading}>
+                                {formLoading && <div className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />}
+                                Create User
+                            </Button>
+                        </DialogFooter>
+                    </DialogContent>
+                </Dialog>
 
                 {/* Edit Dialog */}
-                <FormDialog
-                    open={isEditDialogOpen}
-                    onOpenChange={setIsEditDialogOpen}
-                    title="Edit User"
-                    description="Update user information."
-                    fields={[
-                        {
-                            name: 'name',
-                            label: 'Name',
-                            type: 'text',
-                            required: true,
-                            placeholder: 'Enter user name'
-                        },
-                        {
-                            name: 'email',
-                            label: 'Email',
-                            type: 'email',
-                            required: true,
-                            placeholder: 'Enter user email'
-                        },
-                        {
-                            name: 'password',
-                            label: 'New Password (optional)',
-                            type: 'password',
-                            required: false,
-                            placeholder: 'Enter new password (leave blank to keep current)'
-                        }
-                    ]}
-                    initialData={{ 
-                        name: editingUser?.name || '', 
-                        email: editingUser?.email || '', 
-                        password: '' 
-                    }}
-                    onSubmit={handleEdit}
-                    loading={formLoading}
-                    errors={formErrors}
-                    submitLabel="Update User"
-                />
+                <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+                    <DialogContent>
+                        <DialogHeader>
+                            <DialogTitle>Edit User</DialogTitle>
+                            <DialogDescription>
+                                Update user information.
+                            </DialogDescription>
+                        </DialogHeader>
+                        <div className="space-y-4">
+                            {formErrors.general && (
+                                <Alert variant="destructive">
+                                    <AlertDescription>{formErrors.general}</AlertDescription>
+                                </Alert>
+                            )}
+                            <div className="space-y-2">
+                                <Label htmlFor="edit-name">Name *</Label>
+                                <Input
+                                    id="edit-name"
+                                    value={formData.name}
+                                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                                    placeholder="Enter user name"
+                                    className={formErrors.name ? 'border-destructive' : ''}
+                                />
+                                {formErrors.name && <p className="text-sm text-destructive">{formErrors.name}</p>}
+                            </div>
+                            <div className="space-y-2">
+                                <Label htmlFor="edit-email">Email *</Label>
+                                <Input
+                                    id="edit-email"
+                                    type="email"
+                                    value={formData.email}
+                                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                                    placeholder="Enter user email"
+                                    className={formErrors.email ? 'border-destructive' : ''}
+                                />
+                                {formErrors.email && <p className="text-sm text-destructive">{formErrors.email}</p>}
+                            </div>
+                            <div className="space-y-2">
+                                <Label htmlFor="edit-password">New Password (optional)</Label>
+                                <Input
+                                    id="edit-password"
+                                    type="password"
+                                    value={formData.password}
+                                    onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                                    placeholder="Enter new password (leave blank to keep current)"
+                                    className={formErrors.password ? 'border-destructive' : ''}
+                                />
+                                {formErrors.password && <p className="text-sm text-destructive">{formErrors.password}</p>}
+                            </div>
+                        </div>
+                        <DialogFooter>
+                            <Button variant="outline" onClick={() => setIsEditDialogOpen(false)}>
+                                Cancel
+                            </Button>
+                            <Button onClick={handleEdit} disabled={formLoading}>
+                                {formLoading && <div className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />}
+                                Update User
+                            </Button>
+                        </DialogFooter>
+                    </DialogContent>
+                </Dialog>
 
                 {/* Delete Dialog */}
                 <DeleteDialog

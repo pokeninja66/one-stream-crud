@@ -8,8 +8,6 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { StatsCard } from '@/components/ui/stats-card';
-import { FormDialog, FormField } from '@/components/ui/form-dialog';
-import { DeleteDialog } from '@/components/ui/delete-dialog';
 import { EmptyState } from '@/components/ui/empty-state';
 import { StreamCard } from '@/components/ui/stream-card';
 import { JsonDataModal } from '@/components/ui/json-data-modal';
@@ -19,6 +17,7 @@ import { type BreadcrumbItem, type Stream, type StreamType } from '@/types';
 import { Head, router } from '@inertiajs/react';
 import { Database, LoaderCircle, Plus, Rss, Tag, Zap } from 'lucide-react';
 import { useEffect, useState } from 'react';
+import { DeleteDialog } from '@/components/ui/delete-dialog';
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
@@ -31,11 +30,11 @@ export default function Dashboard() {
     const [streams, setStreams] = useState<Stream[]>([]);
     const [streamTypes, setStreamTypes] = useState<StreamType[]>([]);
     const [loading, setLoading] = useState(true);
-    const [error, setError] = useState<string | null>(null);
     const [isCreateStreamDialogOpen, setIsCreateStreamDialogOpen] = useState(false);
     const [isCreateTypeDialogOpen, setIsCreateTypeDialogOpen] = useState(false);
     const [isJsonModalOpen, setIsJsonModalOpen] = useState(false);
     const [selectedStreamData, setSelectedStreamData] = useState<Stream | null>(null);
+    const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
     const [streamFormData, setStreamFormData] = useState({
         title: '',
         description: '',
@@ -51,7 +50,6 @@ export default function Dashboard() {
     const fetchData = async () => {
         try {
             setLoading(true);
-            setError(null);
 
             const [streamsResponse, typesResponse] = await Promise.all([fetch('/api/streams'), fetch('/api/stream-types')]);
 
@@ -65,7 +63,7 @@ export default function Dashboard() {
             setStreams(streamsData.data || []);
             setStreamTypes(typesData);
         } catch (err) {
-            setError(err instanceof Error ? err.message : 'An error occurred');
+            console.error(err instanceof Error ? err.message : 'An error occurred');
         } finally {
             setLoading(false);
         }
@@ -116,7 +114,7 @@ export default function Dashboard() {
                 date_expiration: '',
             });
             fetchData();
-        } catch (err) {
+        } catch {
             setFormErrors({ general: 'An error occurred while creating the stream' });
         } finally {
             setFormLoading(false);
@@ -157,6 +155,7 @@ export default function Dashboard() {
             fetchData();
         } catch (err) {
             setFormErrors({ general: 'An error occurred while creating the stream type' });
+            console.error('Failed to create stream type:', err);
         } finally {
             setFormLoading(false);
         }
@@ -248,7 +247,7 @@ export default function Dashboard() {
                                                 </Alert>
                                             )}
                                             <div className="space-y-2">
-                                                <Label htmlFor="title">Title *</Label>
+                                                <label htmlFor="title">Title *</label>
                                                 <Input
                                                     id="title"
                                                     value={streamFormData.title}
@@ -422,7 +421,10 @@ export default function Dashboard() {
                                             setIsJsonModalOpen(true);
                                         }}
                                         onEdit={(stream) => router.visit(`/streams/${stream.id}/edit`)}
-                                        onDelete={(stream) => handleDeleteStream(stream.id)}
+                                        onDelete={(stream) => {
+                                            setSelectedStreamData(stream);
+                                            setIsDeleteDialogOpen(true);
+                                        }}
                                     />
                                 ))}
                                 {streams.length > 5 && (
@@ -444,6 +446,21 @@ export default function Dashboard() {
                     data={selectedStreamData}
                     title="Stream Raw Data"
                     description="View the raw JSON data for this stream. You can copy this data to use elsewhere."
+                />
+
+                {/* Delete Dialog */}
+                <DeleteDialog
+                    open={isDeleteDialogOpen}
+                    onOpenChange={setIsDeleteDialogOpen}
+                    title="Delete Stream"
+                    description="Are you sure you want to delete this stream? This action cannot be undone."
+                    itemName={selectedStreamData?.title || ''}
+                    onConfirm={() => {
+                        if (selectedStreamData) {
+                            handleDeleteStream(selectedStreamData.id);
+                        }
+                        setIsDeleteDialogOpen(false);
+                    }}
                 />
             </div>
         </AppLayout>

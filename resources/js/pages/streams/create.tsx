@@ -59,7 +59,7 @@ export default function StreamForm({ stream }: StreamFormProps) {
         fetchStreamTypes();
     }, []);
 
-    const handleInputChange = (field: string, value: any) => {
+    const handleInputChange = (field: string, value: string | number | undefined) => {
         setFormData(prev => ({ ...prev, [field]: value }));
         // Clear error when user starts typing
         if (errors[field]) {
@@ -144,6 +144,7 @@ export default function StreamForm({ stream }: StreamFormProps) {
             const errorMessage = 'An error occurred while saving the stream';
             setErrors({ general: errorMessage });
             toast.error(errorMessage);
+            console.error('Failed to save stream:', err);
         } finally {
             setLoading(false);
         }

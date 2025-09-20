@@ -1,8 +1,7 @@
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { type Stream } from '@/types';
-import { Database, DollarSign, Calendar, Tag, Edit, Trash2, Eye } from 'lucide-react';
+import { DollarSign, Calendar, Tag, Edit, Trash2, Eye } from 'lucide-react';
 
 export interface StreamCardProps {
     stream: Stream;
@@ -91,32 +90,15 @@ export function StreamCard({
                             </Button>
                         )}
                         {onDelete && (
-                            <Dialog>
-                                <DialogTrigger asChild>
-                                    <Button 
-                                        variant="outline" 
-                                        size="sm" 
-                                        className="flex-1 min-w-0 text-destructive hover:text-destructive"
-                                    >
-                                        <Trash2 className="mr-1 h-3 w-3" />
-                                        <span className="hidden sm:inline">Delete</span>
-                                    </Button>
-                                </DialogTrigger>
-                                <DialogContent>
-                                    <DialogHeader>
-                                        <DialogTitle>Delete Stream</DialogTitle>
-                                        <DialogDescription>
-                                            Are you sure you want to delete "{stream.title}"? This action cannot be undone.
-                                        </DialogDescription>
-                                    </DialogHeader>
-                                    <DialogFooter>
-                                        <Button variant="outline">Cancel</Button>
-                                        <Button variant="destructive" onClick={() => onDelete(stream)}>
-                                            Delete
-                                        </Button>
-                                    </DialogFooter>
-                                </DialogContent>
-                            </Dialog>
+                            <Button 
+                                variant="outline" 
+                                size="sm" 
+                                className="flex-1 min-w-0 text-destructive hover:text-destructive"
+                                onClick={() => onDelete(stream)}
+                            >
+                                <Trash2 className="mr-1 h-3 w-3" />
+                                <span className="hidden sm:inline">Delete</span>
+                            </Button>
                         )}
                     </div>
                 )}

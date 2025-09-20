@@ -6,6 +6,7 @@ use App\Http\Controllers\Api\StreamController;
 use App\Http\Controllers\Api\StreamTypeController;
 use App\Http\Controllers\Api\UserController;
 
+// Added this because the original route was not working with the new iDoc documentation.
 Route::get('/user', [UserController::class, 'currentUser'])->middleware('auth:sanctum');
 
 // NOTE: This is a temporary endpoint to get the stream types.

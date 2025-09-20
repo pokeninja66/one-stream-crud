@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Head, router } from '@inertiajs/react';
 import AppLayout from '@/layouts/app-layout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -54,7 +54,7 @@ export default function StreamsIndex() {
     const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
 
     // Fetch streams
-    const fetchStreams = async (page = 1) => {
+    const fetchStreams = useCallback(async (page = 1) => {
         try {
             setLoading(true);
             setError(null);
@@ -62,7 +62,7 @@ export default function StreamsIndex() {
             const params = new URLSearchParams({
                 page: page.toString(),
                 ...Object.fromEntries(
-                    Object.entries(filters).filter(([_, value]) => value !== undefined && value !== '')
+                    Object.entries(filters).filter(([, value]) => value !== undefined && value !== '')
                 ),
             });
 
@@ -87,7 +87,7 @@ export default function StreamsIndex() {
         } finally {
             setLoading(false);
         }
-    };
+    }, [filters]);
 
     // Fetch stream types
     const fetchStreamTypes = async () => {
@@ -108,9 +108,9 @@ export default function StreamsIndex() {
 
     useEffect(() => {
         fetchStreams();
-    }, [filters]);
+    }, [filters, fetchStreams]);
 
-    const handleFilterChange = (key: keyof StreamFilters, value: any) => {
+    const handleFilterChange = (key: keyof StreamFilters, value: string | number | undefined) => {
         setFilters(prev => ({ ...prev, [key]: value }));
     };
 
@@ -121,16 +121,6 @@ export default function StreamsIndex() {
             order_by: field,
             order_dir: newOrderDir,
         }));
-    };
-
-    const formatDate = (dateString: string) => {
-        return new Date(dateString).toLocaleDateString('en-US', {
-            year: 'numeric',
-            month: 'short',
-            day: 'numeric',
-            hour: '2-digit',
-            minute: '2-digit',
-        });
     };
 
     const getSortIcon = (field: string) => {

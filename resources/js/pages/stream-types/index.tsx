@@ -1,17 +1,15 @@
 import { useState, useEffect } from 'react';
 import { Head, router } from '@inertiajs/react';
 import AppLayout from '@/layouts/app-layout';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { SearchBar } from '@/components/ui/search-bar';
-import { DataGrid, DataGridColumn, DataGridAction } from '@/components/ui/data-grid';
-import { FormDialog, FormField } from '@/components/ui/form-dialog';
+import { FormDialog } from '@/components/ui/form-dialog';
 import { DeleteDialog } from '@/components/ui/delete-dialog';
 import { StreamTypeCard } from '@/components/ui/stream-type-card';
 import { type BreadcrumbItem, type StreamType } from '@/types';
@@ -92,7 +90,7 @@ export default function StreamTypesIndex() {
             setIsCreateDialogOpen(false);
             setFormData({ name: '' });
             fetchStreamTypes();
-        } catch (err) {
+        } catch {
             setFormErrors({ general: 'An error occurred while creating the stream type' });
         } finally {
             setFormLoading(false);
@@ -132,24 +130,10 @@ export default function StreamTypesIndex() {
             setEditingType(null);
             setFormData({ name: '' });
             fetchStreamTypes();
-        } catch (err) {
+        } catch {
             setFormErrors({ general: 'An error occurred while updating the stream type' });
         } finally {
             setFormLoading(false);
-        }
-    };
-
-    const handleDelete = async (id: number) => {
-        try {
-            const response = await fetch(`/api/stream-types/${id}`, {
-                method: 'DELETE',
-            });
-
-            if (response.ok) {
-                fetchStreamTypes();
-            }
-        } catch (err) {
-            console.error('Failed to delete stream type:', err);
         }
     };
 
@@ -157,6 +141,12 @@ export default function StreamTypesIndex() {
         setEditingType(type);
         setFormData({ name: type.name });
         setIsEditDialogOpen(true);
+    };
+
+    const openCreateDialog = () => {
+        setFormData({ name: '' });
+        setFormErrors({});
+        setIsCreateDialogOpen(true);
     };
 
     const filteredTypes = streamTypes.filter(type =>
@@ -186,50 +176,10 @@ export default function StreamTypesIndex() {
                             </p>
                         </div>
                     </div>
-                    <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
-                        <DialogTrigger asChild>
-                            <Button className="self-start sm:self-auto">
-                                <Plus className="mr-2 h-4 w-4" />
-                                Create Type
-                            </Button>
-                        </DialogTrigger>
-                        <DialogContent>
-                            <DialogHeader>
-                                <DialogTitle>Create Stream Type</DialogTitle>
-                                <DialogDescription>
-                                    Add a new stream type to categorize your streams.
-                                </DialogDescription>
-                            </DialogHeader>
-                            <div className="space-y-4">
-                                {formErrors.general && (
-                                    <Alert variant="destructive">
-                                        <AlertDescription>{formErrors.general}</AlertDescription>
-                                    </Alert>
-                                )}
-                                <div className="space-y-2">
-                                    <Label htmlFor="name">Name</Label>
-                                    <Input
-                                        id="name"
-                                        value={formData.name}
-                                        onChange={(e) => setFormData({ name: e.target.value })}
-                                        placeholder="Enter stream type name"
-                                        className={formErrors.name ? 'border-destructive' : ''}
-                                    />
-                                    {formErrors.name && (
-                                        <p className="text-sm text-destructive">{formErrors.name}</p>
-                                    )}
-                                </div>
-                            </div>
-                            <DialogFooter>
-                                <Button variant="outline" onClick={() => setIsCreateDialogOpen(false)}>
-                                    Cancel
-                                </Button>
-                                <Button onClick={handleCreate} disabled={formLoading}>
-                                    {formLoading ? 'Creating...' : 'Create'}
-                                </Button>
-                            </DialogFooter>
-                        </DialogContent>
-                    </Dialog>
+                    <Button onClick={openCreateDialog} className="self-start sm:self-auto">
+                        <Plus className="mr-2 h-4 w-4" />
+                        Create Type
+                    </Button>
                 </div>
 
                 {/* Search */}
@@ -275,7 +225,7 @@ export default function StreamTypesIndex() {
                             </p>
                             {!searchTerm && (
                                 <div className="mt-6">
-                                    <Button onClick={() => setIsCreateDialogOpen(true)}>
+                                    <Button onClick={openCreateDialog}>
                                         <Plus className="mr-2 h-4 w-4" />
                                         Create Stream Type
                                     </Button>
@@ -300,48 +250,84 @@ export default function StreamTypesIndex() {
                 </div>
 
                 {/* Create Dialog */}
-                <FormDialog
-                    open={isCreateDialogOpen}
-                    onOpenChange={setIsCreateDialogOpen}
-                    title="Create Stream Type"
-                    description="Add a new stream type to categorize your streams."
-                    fields={[
-                        {
-                            name: 'name',
-                            label: 'Name',
-                            type: 'text',
-                            required: true,
-                            placeholder: 'Enter stream type name'
-                        }
-                    ]}
-                    initialData={{ name: '' }}
-                    onSubmit={handleCreate}
-                    loading={formLoading}
-                    errors={formErrors}
-                    submitLabel="Create"
-                />
+                <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
+                    <DialogContent>
+                        <DialogHeader>
+                            <DialogTitle>Create Stream Type</DialogTitle>
+                            <DialogDescription>
+                                Add a new stream type to categorize your streams.
+                            </DialogDescription>
+                        </DialogHeader>
+                        <div className="space-y-4">
+                            {formErrors.general && (
+                                <Alert variant="destructive">
+                                    <AlertDescription>{formErrors.general}</AlertDescription>
+                                </Alert>
+                            )}
+                            <div className="space-y-2">
+                                <Label htmlFor="name">Name</Label>
+                                <Input
+                                    id="name"
+                                    value={formData.name}
+                                    onChange={(e) => setFormData({ name: e.target.value })}
+                                    placeholder="Enter stream type name"
+                                    className={formErrors.name ? 'border-destructive' : ''}
+                                />
+                                {formErrors.name && (
+                                    <p className="text-sm text-destructive">{formErrors.name}</p>
+                                )}
+                            </div>
+                        </div>
+                        <DialogFooter>
+                            <Button variant="outline" onClick={() => setIsCreateDialogOpen(false)}>
+                                Cancel
+                            </Button>
+                            <Button onClick={handleCreate} disabled={formLoading}>
+                                {formLoading ? 'Creating...' : 'Create'}
+                            </Button>
+                        </DialogFooter>
+                    </DialogContent>
+                </Dialog>
 
                 {/* Edit Dialog */}
-                <FormDialog
-                    open={isEditDialogOpen}
-                    onOpenChange={setIsEditDialogOpen}
-                    title="Edit Stream Type"
-                    description="Update the stream type information."
-                    fields={[
-                        {
-                            name: 'name',
-                            label: 'Name',
-                            type: 'text',
-                            required: true,
-                            placeholder: 'Enter stream type name'
-                        }
-                    ]}
-                    initialData={{ name: editingType?.name || '' }}
-                    onSubmit={handleEdit}
-                    loading={formLoading}
-                    errors={formErrors}
-                    submitLabel="Update"
-                />
+                <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+                    <DialogContent>
+                        <DialogHeader>
+                            <DialogTitle>Edit Stream Type</DialogTitle>
+                            <DialogDescription>
+                                Update the stream type information.
+                            </DialogDescription>
+                        </DialogHeader>
+                        <div className="space-y-4">
+                            {formErrors.general && (
+                                <Alert variant="destructive">
+                                    <AlertDescription>{formErrors.general}</AlertDescription>
+                                </Alert>
+                            )}
+                            <div className="space-y-2">
+                                <Label htmlFor="edit-name">Name</Label>
+                                <Input
+                                    id="edit-name"
+                                    value={formData.name}
+                                    onChange={(e) => setFormData({ name: e.target.value })}
+                                    placeholder="Enter stream type name"
+                                    className={formErrors.name ? 'border-destructive' : ''}
+                                />
+                                {formErrors.name && (
+                                    <p className="text-sm text-destructive">{formErrors.name}</p>
+                                )}
+                            </div>
+                        </div>
+                        <DialogFooter>
+                            <Button variant="outline" onClick={() => setIsEditDialogOpen(false)}>
+                                Cancel
+                            </Button>
+                            <Button onClick={handleEdit} disabled={formLoading}>
+                                {formLoading ? 'Updating...' : 'Update'}
+                            </Button>
+                        </DialogFooter>
+                    </DialogContent>
+                </Dialog>
 
                 {/* Delete Dialog */}
                 <DeleteDialog

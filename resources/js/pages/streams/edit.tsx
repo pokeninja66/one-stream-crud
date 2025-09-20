@@ -59,7 +59,7 @@ export default function StreamEdit({ streamId }: StreamEditProps) {
                     stream_type_id: data.type?.id,
                     date_expiration: data.date_expiration.slice(0, 16),
                 });
-            } catch (err) {
+            } catch {
                 const errorMessage = 'Failed to load stream data';
                 setErrors({ general: errorMessage });
                 toast.error(errorMessage);
@@ -87,7 +87,7 @@ export default function StreamEdit({ streamId }: StreamEditProps) {
         fetchStreamTypes();
     }, []);
 
-    const handleInputChange = (field: string, value: any) => {
+    const handleInputChange = (field: string, value: string | number) => {
         setFormData(prev => ({ ...prev, [field]: value }));
         // Clear error when user starts typing
         if (errors[field]) {
@@ -165,7 +165,7 @@ export default function StreamEdit({ streamId }: StreamEditProps) {
             // Redirect to streams list on success
             toast.success('Stream updated successfully!');
             router.visit('/streams');
-        } catch (err) {
+        } catch {
             const errorMessage = 'An error occurred while updating the stream';
             setErrors({ general: errorMessage });
             toast.error(errorMessage);

@@ -7,7 +7,7 @@ A full-stack application built with a Laravel backend and a React/TypeScript fro
 - **Backend**: RESTful API built with Laravel (PHP 8.3).
 - **Frontend**: Modern UI built with React, TypeScript, Inertia.js, and Tailwind CSS.
 - **Database**: Supports PostgreSQL for production and SQLite for local development.
-- **API Documentation**: Integrated Swagger UI for interactive API documentation.
+- **API Documentation**: Integrated iDoc for interactive API documentation.
 - **Testing**: Comprehensive test suite using Pest for backend testing.
 - **Containerization**: Fully containerized using Docker with a multi-stage build for optimized production images.
 - **Deployment**: Continuous deployment configured for [Render.com](https://render.com/) via a `render.yaml` file.
@@ -98,13 +98,13 @@ php artisan test --group=api
 
 ## API Documentation
 
-API documentation is generated using Swagger.
--   **Locally**: Run `php artisan l5-swagger:generate` and access it at `/api/documentation`.
--   **Production**: It is generated automatically on deployment and available at `https://one-stream-crud.onrender.com/api/documentation`.
+API documentation is generated using iDoc.
+-   **Locally**: Run `php artisan idoc:generate` and access it at `/idoc`.
+-   **Production**: It is generated automatically on deployment and available at `https://one-stream-crud.onrender.com/idoc`.
 
 ## API Endpoints
 
-Below are the available API endpoints. For more detailed information, please refer to the [Swagger Documentation](#-api-documentation).
+Below are the available API endpoints. For more detailed information, please refer to the [iDoc Documentation](#-api-documentation).
 
 ### Streams
 
@@ -173,8 +173,6 @@ This project is configured for continuous deployment on Render. The `render.yaml
 
 The `start.sh` script handles deployment tasks such as running migrations, seeding the database, generating API docs, and starting the NGINX and PHP-FPM services.
 
-! NOTE: Currently there is some issue with the internal URL redirection of the swagger docs to my http port instead of the https one forced by render. Not sure how to fix it righ now so the API docs is currently only visible in development.
-
 ### Production Environment Variables
 
 The following environment variables need to be configured on Render for the application to work correctly:
@@ -184,6 +182,3 @@ The following environment variables need to be configured on Render for the appl
 | `APP_URL`                     | The public URL of the application.                     | `https://one-stream-crud.onrender.com`         |
 | `DATABASE_URL`                | The connection string for the PostgreSQL database.     | Provided by Render                           |
 | `APP_KEY`                     | Laravel application key.                               | `base64:...`                                 |
-| `L5_SWAGGER_CONST_HOST`       | The host for Swagger to generate documentation against.| `https://one-stream-crud.onrender.com`         |
-| `L5_SWAGGER_GENERATE_ALWAYS`  | Set to `true` to regenerate docs on each request.      | `true`                                       |
-| `L5_SWAGGER_PROXY`            | Set to your proxy IP or `*` to trust Render's proxy.   | `*`                                          |
