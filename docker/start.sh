@@ -53,6 +53,12 @@ php artisan vendor:publish --provider="L5Swagger\L5SwaggerServiceProvider"
 echo "Generating API documentation..."
 php artisan l5-swagger:generate
 
+# Copy and configure Swagger UI static assets
+echo "Copying and configuring Swagger UI assets..."
+mkdir -p public/api/docs/asset
+cp -r vendor/swagger-api/swagger-ui/dist/* public/api/docs/asset/
+sed -i 's|url: "https://petstore.swagger.io/v2/swagger.json"|url: "../api-docs.json"|' public/api/docs/asset/swagger-initializer.js
+
 # Optimize application
 echo "Optimizing application..."
 php artisan optimize

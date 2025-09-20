@@ -183,7 +183,7 @@ export default function Dashboard() {
             <div className="flex h-full flex-1 flex-col gap-6 overflow-x-auto rounded-xl p-4">
                 {/* Welcome Section */}
                 <div className="space-y-2">
-                    <h1 className="text-3xl font-bold tracking-tight">Welcome to Streams CRUD</h1>
+                    <h1 className="text-3xl font-bold tracking-tight">Welcome to One Stream CRUD</h1>
                     <p className="text-muted-foreground">Manage your web streams with our comprehensive CRUD API system.</p>
                 </div>
 

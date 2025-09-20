@@ -8,12 +8,12 @@
  * )
  *
  * @OA\Server(
- *     url="https://one-stream-crud.onrender.com",
+ *     url="{L5_SWAGGER_CONST_HOST}",
  *     description="Production server"
  * )
  *
  * @OA\Server(
- *     url="http://127.0.0.1:8000",
+ *     url="{L5_SWAGGER_CONST_HOST}",
  *     description="Local development server"
  * )
  */

@@ -4,7 +4,7 @@ return [
     'default' => 'default',
     'documentations' => [
         'default' => [
-            'schema' => 'https', // Always use HTTPS for production
+            'schema' => env('APP_ENV') === 'production' ? 'https' : 'http', // Use HTTP locally, HTTPS in production
             'api' => [
                 'title' => 'OneStream API',
             ],
