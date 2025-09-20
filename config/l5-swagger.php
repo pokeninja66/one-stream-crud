@@ -5,7 +5,7 @@ return [
     'documentations' => [
         'default' => [
             'api' => [
-                'title' => 'L5 Swagger UI',
+                'title' => 'OneStream API',
             ],
 
             'routes' => [
@@ -13,6 +13,8 @@ return [
                  * Route for accessing api documentation interface
                  */
                 'api' => 'api/documentation',
+                'docs' => 'api/docs',
+                'oauth2_callback' => 'api/oauth2-callback',
             ],
             'paths' => [
                 /*
@@ -45,6 +47,7 @@ return [
                  */
                 'annotations' => [
                     base_path('app'),
+                    base_path('routes'),
                 ],
             ],
         ],
