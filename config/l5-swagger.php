@@ -4,6 +4,7 @@ return [
     'default' => 'default',
     'documentations' => [
         'default' => [
+            'schema' => 'https', // Always use HTTPS for production
             'api' => [
                 'title' => 'OneStream API',
             ],
