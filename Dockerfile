@@ -75,6 +75,9 @@ RUN php artisan key:generate --ansi || true
 # Run Laravel post-install scripts
 RUN php artisan package:discover --ansi
 
+# Publish Swagger UI assets
+RUN php artisan vendor:publish --provider="L5Swagger\L5SwaggerServiceProvider"
+
 # Build frontend assets
 RUN npm run build
 
@@ -107,6 +110,10 @@ COPY docker/nginx.conf /etc/nginx/nginx.conf
 COPY docker/start.sh /start.sh
 COPY docker/deploy.sh /deploy.sh
 RUN chmod +x /start.sh /deploy.sh
+
+# Set production environment variables
+ENV APP_ENV=production
+ENV APP_DEBUG=false
 
 EXPOSE 80
 
