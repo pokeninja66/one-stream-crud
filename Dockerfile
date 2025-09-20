@@ -5,17 +5,17 @@ WORKDIR /var/www/html
 # Copy composer files first for better caching
 COPY composer.json composer.lock ./
 
-# Install PHP dependencies
-RUN composer install --no-dev --optimize-autoloader --no-interaction
-
 # Copy package files for Node.js dependencies
 COPY package.json package-lock.json ./
 
+# Copy app code 
+COPY . .
+
+# Install PHP dependencies
+RUN composer install --no-dev --optimize-autoloader --no-interaction
+
 # Install Node.js dependencies and build assets
 RUN npm ci && npm run build && npm prune --production
-
-# Copy app code
-COPY . .
 
 # Laravel/Composer environment
 ENV SKIP_COMPOSER 1
