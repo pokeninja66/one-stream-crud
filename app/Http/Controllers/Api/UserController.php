@@ -16,6 +16,14 @@ use Illuminate\Support\Facades\Hash;
 class UserController extends Controller
 {
     /**
+     * Get the currently authenticated user.
+     */
+    public function currentUser(Request $request)
+    {
+        return $request->user();
+    }
+
+    /**
      * Display a listing of the resource.
      * 
      * @OA\Get(

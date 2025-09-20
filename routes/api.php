@@ -6,9 +6,7 @@ use App\Http\Controllers\Api\StreamController;
 use App\Http\Controllers\Api\StreamTypeController;
 use App\Http\Controllers\Api\UserController;
 
-Route::get('/user', function (Request $request) {
-    return $request->user();
-})->middleware('auth:sanctum');
+Route::get('/user', [UserController::class, 'currentUser'])->middleware('auth:sanctum');
 
 // NOTE: This is a temporary endpoint to get the stream types.
 // This needs to be updated in a real production environment to actually use API tokens to the auth system.
