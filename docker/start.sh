@@ -63,6 +63,9 @@ sed -i 's|url: "https://petstore.swagger.io/v2/swagger.json"|url: "../api-docs.j
 echo "Optimizing application..."
 php artisan optimize
 
+# Create storage symlink
+php artisan storage:link
+
 echo "Starting PHP-FPM..."
 php-fpm83 -F -R &
 

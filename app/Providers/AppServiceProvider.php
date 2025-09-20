@@ -20,11 +20,12 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(UrlGenerator $url): void
     {
-        // Force HTTPS in production
-        // if (env('APP_ENV') == 'production') {
-        //     $url->forceScheme('https');
-        // }
-        // Always force HTTPS (for both production and development - need to remove this in dev later)
-        $url->forceScheme('https');
+        // Render.com specific logic, because it's not possible to set the APP_URL in the .env file for some reason...
+        if (app()->environment('production') || request()->getHost() === 'one-stream-crud.onrender.com') {
+            $url->forceScheme('https');
+            $url->forceRootUrl('https://one-stream-crud.onrender.com');
+        }
+        // Always force HTTPS backup variant
+        // $url->forceScheme('https');
     }
 }
