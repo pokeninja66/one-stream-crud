@@ -27,6 +27,10 @@ php artisan migrate --force
 echo "Seeding database..."
 php artisan db:seed --force
 
+# Generate API documentation
+echo "Generating API documentation..."
+php artisan l5-swagger:generate
+
 # Optimize application
 echo "Optimizing application..."
 php artisan optimize
