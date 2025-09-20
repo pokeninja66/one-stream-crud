@@ -2,9 +2,8 @@ FROM richarvey/nginx-php-fpm:3.1.6
 
 WORKDIR /var/www/html
 
-# Install Node.js (base image doesn't include it for some reason)
-RUN curl -fsSL https://deb.nodesource.com/setup_20.x | bash - && \
-    apt-get install -y nodejs
+# Install Node.js
+RUN apk add --no-cache nodejs npm
 
 # Copy composer files first for better caching
 COPY composer.json composer.lock ./
