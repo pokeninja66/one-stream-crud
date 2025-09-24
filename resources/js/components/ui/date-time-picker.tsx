@@ -2,6 +2,7 @@
 
 import * as React from "react"
 import { ChevronDownIcon } from "lucide-react"
+import { format, parseISO, isValid, parse } from "date-fns"
 
 import { Button } from "@/components/ui/button"
 import { Calendar } from "@/components/ui/calendar"
@@ -29,39 +30,50 @@ export function DateTimePicker({
   disabled = false
 }: DateTimePickerProps) {
   const [open, setOpen] = React.useState(false)
-  const [date, setDate] = React.useState<Date | undefined>(
-    value ? new Date(value) : undefined
-  )
+  
+  // Parse the value using date-fns
+  const parsedValue = React.useMemo(() => {
+    if (!value) return null
+    try {
+      // Handle datetime-local format (YYYY-MM-DDTHH:mm)
+      if (value.includes('T') && !value.includes('Z') && !value.includes('+')) {
+        const pattern = value.length > 16 ? "yyyy-MM-dd'T'HH:mm:ss" : "yyyy-MM-dd'T'HH:mm"
+        const parsed = parse(value, pattern, new Date())
+        return isValid(parsed) ? parsed : null
+      }
+      // Handle ISO format
+      const parsed = parseISO(value)
+      return isValid(parsed) ? parsed : null
+    } catch {
+      return null
+    }
+  }, [value])
+
+  const [date, setDate] = React.useState<Date | undefined>(parsedValue || undefined)
   const [time, setTime] = React.useState<string>(
-    value ? new Date(value).toLocaleTimeString('en-US', { 
-      hour12: false, 
-      hour: '2-digit', 
-      minute: '2-digit' 
-    }) : ""
+    parsedValue ? format(parsedValue, 'HH:mm:ss') : ""
   )
 
   React.useEffect(() => {
-    if (value) {
-      const dateValue = new Date(value)
-      setDate(dateValue)
-      setTime(dateValue.toLocaleTimeString('en-US', { 
-        hour12: false, 
-        hour: '2-digit', 
-        minute: '2-digit' 
-      }))
+    if (parsedValue) {
+      setDate(parsedValue)
+      setTime(format(parsedValue, 'HH:mm:ss'))
+    } else {
+      setDate(undefined)
+      setTime("")
     }
-  }, [value])
+  }, [parsedValue])
 
   const handleDateSelect = (selectedDate: Date | undefined) => {
     if (selectedDate) {
       setDate(selectedDate)
       if (time) {
-        const [hours, minutes] = time.split(":")
+        const [hours, minutes, seconds = '00'] = time.split(":")
         const newDateTime = new Date(selectedDate)
-        newDateTime.setHours(parseInt(hours), parseInt(minutes))
-        onChange?.(newDateTime.toISOString().slice(0, 16))
+        newDateTime.setHours(parseInt(hours), parseInt(minutes), parseInt(seconds))
+        onChange?.(format(newDateTime, "yyyy-MM-dd'T'HH:mm:ss"))
       } else {
-        onChange?.(selectedDate.toISOString().slice(0, 16))
+        onChange?.(format(selectedDate, "yyyy-MM-dd'T'HH:mm:ss"))
       }
     }
   }
@@ -69,10 +81,10 @@ export function DateTimePicker({
   const handleTimeChange = (timeValue: string) => {
     setTime(timeValue)
     if (date && timeValue) {
-      const [hours, minutes] = timeValue.split(":")
+      const [hours, minutes, seconds = '00'] = timeValue.split(":")
       const newDateTime = new Date(date)
-      newDateTime.setHours(parseInt(hours), parseInt(minutes))
-      onChange?.(newDateTime.toISOString().slice(0, 16))
+      newDateTime.setHours(parseInt(hours), parseInt(minutes), parseInt(seconds))
+      onChange?.(format(newDateTime, "yyyy-MM-dd'T'HH:mm:ss"))
     }
   }
 
@@ -91,7 +103,7 @@ export function DateTimePicker({
                 className="w-32 justify-between font-normal"
                 disabled={disabled}
               >
-                {date ? date.toLocaleDateString() : "Select date"}
+                {date ? format(date, 'MMM dd, yyyy') : "Select date"}
                 <ChevronDownIcon />
               </Button>
             </PopoverTrigger>

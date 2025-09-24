@@ -211,6 +211,41 @@ describe('Stream API Endpoints', function () {
                 'stream_type_id' => null
             ]);
         });
+
+        test('preserves exact date_expiration without timezone shift', function () {
+            $target = now()->setTimezone('Europe/Sofia')->addDays(2)->setSeconds(30);
+            $payload = [
+                'title' => 'Datetime Integrity',
+                'tokens_price' => 10,
+                'date_expiration' => $target->format('Y-m-d H:i:s'),
+            ];
+
+            $response = $this->postJson('/api/streams', $payload)->assertStatus(201);
+
+            $id = $response->json('data.id');
+            $this->assertNotEmpty($id);
+
+            $get = $this->getJson("/api/streams/{$id}")->assertStatus(200);
+            $this->assertEquals($payload['date_expiration'], $get->json('data.date_expiration'));
+        });
+
+        test('rejects wrong date format and accepts correct one', function () {
+            $bad = [
+                'title' => 'Bad Date',
+                'tokens_price' => 1,
+                'date_expiration' => now()->addDay()->toIso8601String(),
+            ];
+            $this->postJson('/api/streams', $bad)
+                ->assertStatus(422)
+                ->assertJsonValidationErrors(['date_expiration']);
+
+            $good = [
+                'title' => 'Good Date',
+                'tokens_price' => 1,
+                'date_expiration' => now()->addDay()->format('Y-m-d H:i:s'),
+            ];
+            $this->postJson('/api/streams', $good)->assertStatus(201);
+        });
     });
     
     describe('GET /api/streams/{id}', function () {

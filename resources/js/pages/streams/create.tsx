@@ -12,6 +12,7 @@ import { ArrowLeft, Save, LoaderCircle } from 'lucide-react';
 import { Textarea } from '@/components/ui/textarea';
 import { DateTimePicker } from '@/components/ui/date-time-picker';
 import { toast } from 'sonner';
+import { formatForApi, formatForInput } from '@/lib/date';
 
 interface StreamFormProps {
     stream?: {
@@ -30,7 +31,9 @@ export default function StreamForm({ stream }: StreamFormProps) {
         description: stream?.description || '',
         tokens_price: stream?.tokens_price || 1,
         stream_type_id: stream?.stream_type_id || undefined,
-        date_expiration: stream?.date_expiration ? stream.date_expiration.slice(0, 16) : '',
+        date_expiration: stream?.date_expiration 
+            ? formatForInput(stream.date_expiration)
+            : '',
     });
     const [streamTypes, setStreamTypes] = useState<StreamType[]>([]);
     const [loading, setLoading] = useState(false);
@@ -120,7 +123,7 @@ export default function StreamForm({ stream }: StreamFormProps) {
                 },
                 body: JSON.stringify({
                     ...formData,
-                    date_expiration: new Date(formData.date_expiration).toISOString().slice(0, 19).replace('T', ' '),
+                    date_expiration: formatForApi(formData.date_expiration),
                 }),
             });
 

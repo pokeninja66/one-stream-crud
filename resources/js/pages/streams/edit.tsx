@@ -14,6 +14,7 @@ import { JsonDataModal } from '@/components/ui/json-data-modal';
 import { type BreadcrumbItem, type StreamType, type Stream } from '@/types';
 import { ArrowLeft, Save, LoaderCircle, Code } from 'lucide-react';
 import { toast } from 'sonner';
+import { formatForApi, formatForInput } from '@/lib/date';
 
 interface StreamEditProps {
     streamId: string;
@@ -40,54 +41,55 @@ export default function StreamEdit({ streamId }: StreamEditProps) {
         { title: 'Edit Stream', href: '#' },
     ];
 
+    const fetchStream = async () => {
+        try {
+            setLoadingStream(true);
+            const response = await fetch(`/api/streams/${streamId}`);
+            if (!response.ok) {
+                throw new Error('Stream not found');
+            }
+            const responseData = await response.json();
+            const data: Stream = responseData.data || responseData;
+            setStream(data);
+            setFormData({
+                title: data.title,
+                description: data.description || '',
+                tokens_price: data.tokens_price,
+                stream_type_id: data.type?.id,
+                date_expiration: formatForInput(data.date_expiration),
+            });
+        } catch {
+            const errorMessage = 'Failed to load stream data';
+            setErrors({ general: errorMessage });
+            toast.error(errorMessage);
+        } finally {
+            setLoadingStream(false);
+        }
+    };
+
     // Fetch stream data
     useEffect(() => {
-        const fetchStream = async () => {
-            try {
-                setLoadingStream(true);
-                const response = await fetch(`/api/streams/${streamId}`);
-                if (!response.ok) {
-                    throw new Error('Stream not found');
-                }
-                const responseData = await response.json();
-                const data: Stream = responseData.data || responseData;
-                setStream(data);
-                setFormData({
-                    title: data.title,
-                    description: data.description || '',
-                    tokens_price: data.tokens_price,
-                    stream_type_id: data.type?.id,
-                    date_expiration: data.date_expiration.slice(0, 16),
-                });
-            } catch {
-                const errorMessage = 'Failed to load stream data';
-                setErrors({ general: errorMessage });
-                toast.error(errorMessage);
-            } finally {
-                setLoadingStream(false);
-            }
-        };
-
         fetchStream();
-    }, [streamId]);
+    }, []);
+
+    const fetchStreamTypes = async () => {
+        try {
+            const response = await fetch('/api/stream-types');
+            if (response.ok) {
+                const data = await response.json();
+                setStreamTypes(data);
+            }
+        } catch (err) {
+            console.error('Failed to fetch stream types:', err);
+        }
+    };
 
     // Fetch stream types
     useEffect(() => {
-        const fetchStreamTypes = async () => {
-            try {
-                const response = await fetch('/api/stream-types');
-                if (response.ok) {
-                    const data = await response.json();
-                    setStreamTypes(data);
-                }
-            } catch (err) {
-                console.error('Failed to fetch stream types:', err);
-            }
-        };
         fetchStreamTypes();
     }, []);
 
-    const handleInputChange = (field: string, value: string | number) => {
+    const handleInputChange = (field: string, value: string | number | undefined) => {
         setFormData(prev => ({ ...prev, [field]: value }));
         // Clear error when user starts typing
         if (errors[field]) {
@@ -128,7 +130,7 @@ export default function StreamEdit({ streamId }: StreamEditProps) {
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        
+
         if (!validateForm()) {
             return;
         }
@@ -145,7 +147,7 @@ export default function StreamEdit({ streamId }: StreamEditProps) {
                 },
                 body: JSON.stringify({
                     ...formData,
-                    date_expiration: new Date(formData.date_expiration).toISOString().slice(0, 19).replace('T', ' '),
+                    date_expiration: formatForApi(formData.date_expiration),
                 }),
             });
 
